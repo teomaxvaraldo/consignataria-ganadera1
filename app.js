@@ -12,91 +12,180 @@ let estadoApp = {
 // ==========================================
 // 1. INICIALIZACIÓN Y PERSISTENCIA LOCAL
 // ==========================================
+// ==========================================
+// 1. INICIALIZACIÓN Y PERSISTENCIA (HÍBRIDO CLOUD FIRESTORE + LOCAL CACHE)
+// ==========================================
+
 function inicializarApp() {
-  // Cargar de localStorage o usar datos semilla
+  actualizarEstadoConexionUI();
+
+  if (typeof modoNubeActivo !== 'undefined' && modoNubeActivo && db) {
+    console.log("🔥 [AgroGestión] Iniciando sincronización en tiempo real con Google Cloud Firestore...");
+    conectarFirestoreTiempoReal();
+  } else {
+    console.log("💾 [AgroGestión] Iniciando en modo local (LocalStorage)...");
+    cargarCacheLocal();
+    actualizarDatalists();
+    actualizarMetricasKPI();
+    renderizarTablaNegocios();
+    renderizarTablaClientes();
+    renderizarVencimientos();
+    estadoApp.negocioLiquidacionId = 3428;
+    inicializarLiquidacion();
+
+    if (estadoApp.negocios.length > 0) {
+      cargarNegocioEnFormulario(estadoApp.negocios[0]);
+    }
+  }
+}
+
+function actualizarEstadoConexionUI() {
+  const badge = document.getElementById('badge-conexion-nube');
+  const texto = document.getElementById('badge-conexion-texto');
+  if (!badge) return;
+
+  if (typeof modoNubeActivo !== 'undefined' && modoNubeActivo && db) {
+    badge.className = 'text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-bold border border-emerald-500/30 flex items-center gap-1.5 shadow-sm';
+    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>Nube Conectada (Tiempo Real)</span>';
+  } else {
+    badge.className = 'text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-bold border border-amber-500/30 flex items-center gap-1.5 shadow-sm';
+    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>Modo Local (Offline)</span>';
+  }
+}
+
+function conectarFirestoreTiempoReal() {
+  // Carga previa inmediata de caché local para que la UI no quede en blanco
+  cargarCacheLocal();
+  actualizarDatalists();
+  actualizarMetricasKPI();
+  renderizarTablaNegocios();
+  renderizarTablaClientes();
+  renderizarVencimientos();
+  estadoApp.negocioLiquidacionId = 3428;
+  inicializarLiquidacion();
+
+  if (estadoApp.negocios.length > 0) {
+    cargarNegocioEnFormulario(estadoApp.negocios[0]);
+  }
+
+  // 1. Escucha en Tiempo Real de Negocios
+  db.collection('negocios').onSnapshot(snapshot => {
+    if (snapshot.empty) {
+      console.log("🔥 [Firestore] Base de datos vacía en la nube. Migrando datos iniciales...");
+      migrarDatosInicialesFirestore();
+      return;
+    }
+
+    const lista = [];
+    snapshot.forEach(doc => {
+      lista.push(doc.data());
+    });
+
+    // Ordenar descendente por ID
+    lista.sort((a, b) => (b.id || 0) - (a.id || 0));
+    estadoApp.negocios = lista;
+    localStorage.setItem('agro_negocios', JSON.stringify(estadoApp.negocios));
+
+    actualizarMetricasKPI();
+    renderizarTablaNegocios();
+    renderizarVencimientos();
+    actualizarSelectorLiquidacion();
+    if (estadoApp.vistaActual === 'liquidacion') {
+      renderizarVistaLiquidacion();
+    }
+  }, error => {
+    console.error("Error en escucha Firestore negocios:", error);
+    modoNubeActivo = false;
+    actualizarEstadoConexionUI();
+    if (error.code === 'permission-denied') {
+      mostrarAvisoReglasFirestore();
+    }
+  });
+
+  // 2. Escucha en Tiempo Real de Clientes
+  db.collection('clientes').onSnapshot(snapshot => {
+    if (snapshot.empty) {
+      migrarClientesInicialesFirestore();
+      return;
+    }
+
+    const listaCli = [];
+    snapshot.forEach(doc => {
+      listaCli.push(doc.data());
+    });
+
+    estadoApp.clientes = listaCli;
+    localStorage.setItem('agro_clientes', JSON.stringify(estadoApp.clientes));
+    actualizarDatalists();
+    renderizarTablaClientes();
+  }, error => {
+    console.error("Error en escucha Firestore clientes:", error);
+    if (error.code === 'permission-denied') {
+      mostrarAvisoReglasFirestore();
+    }
+  });
+}
+
+function mostrarAvisoReglasFirestore() {
+  const badge = document.getElementById('badge-conexion-nube');
+  if (badge) {
+    badge.className = 'text-[10px] bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded font-bold border border-rose-500/30 flex items-center gap-1.5 shadow-sm cursor-pointer';
+    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span><span>Permiso Firestore Denegado (Click aquí)</span>';
+    badge.title = "Hacé clic para ver cómo habilitar las reglas de lectura/escritura en Firebase";
+    badge.onclick = () => {
+      alert("⚠️ Firebase Firestore - Permiso Denegado:\n\nTu base de datos está creada en Firebase pero sus reglas de seguridad no permiten lectura/escritura pública.\n\nPara activarlo en 30 segundos:\n1. Entrá a https://console.firebase.google.com\n2. Abrí tu proyecto 'agrogestion-ganadera'\n3. Andá a 'Firestore Database' > solapa 'Reglas' (Rules)\n4. Modificá la regla para que diga:\n\nallow read, write: if true;\n\n5. Hacé clic en 'Publicar' (Publish).\n¡Y listo! Se sincronizará en tiempo real en todos tus dispositivos.");
+    };
+  }
+  showToast('Firestore: revise las Reglas de acceso en Firebase Console', '⚠️');
+}
+
+function migrarDatosInicialesFirestore() {
+  if (!db) return;
+  DATOS_INICIALES_NEGOCIOS.forEach(neg => {
+    db.collection('negocios').doc(String(neg.id)).set(neg).catch(e => console.error(e));
+  });
+  migrarClientesInicialesFirestore();
+}
+
+function migrarClientesInicialesFirestore() {
+  if (!db) return;
+  DATOS_INICIALES_CLIENTES.forEach(cli => {
+    db.collection('clientes').doc(String(cli.id)).set(cli).catch(e => console.error(e));
+  });
+}
+
+function cargarCacheLocal() {
   const negociosGuardados = localStorage.getItem('agro_negocios');
   const clientesGuardados = localStorage.getItem('agro_clientes');
 
   if (negociosGuardados) {
     try {
       estadoApp.negocios = JSON.parse(negociosGuardados);
-      // Asegurar que cada negocio tenga su tipo de operación definido
-      estadoApp.negocios.forEach(n => {
-        if (!n.hacienda) n.hacienda = {};
-        if (!n.hacienda.tipo) {
-          if (n.id === 3422 || (n.hacienda.detalle || '').includes('NOVILLO')) {
-            n.hacienda.tipo = 'Faena';
-          } else if (n.id === 3421 || (n.hacienda.detalle || '').includes('PREÑADA')) {
-            n.hacienda.tipo = 'Cría / Reproducción';
-          } else {
-            n.hacienda.tipo = 'Invernada';
-          }
-        }
-        if (!n.documentos || !n.documentos.dte) {
-          const seedMatch = DATOS_INICIALES_NEGOCIOS.find(s => s.id === n.id);
-          n.documentos = seedMatch?.documentos || {
-            dte: { numero: "" },
-            romaneo: { numero: "" }
-          };
-        }
-      });
-      // Asegurar que el Negocio #3428 esté disponible y actualizado
       const idx3428 = estadoApp.negocios.findIndex(n => n.id === 3428);
       const seed3428 = DATOS_INICIALES_NEGOCIOS.find(n => n.id === 3428);
       if (idx3428 === -1 && seed3428) {
         estadoApp.negocios.unshift(seed3428);
-      } else if (idx3428 >= 0 && seed3428 && (!estadoApp.negocios[idx3428].hacienda?.tropaRomaneo || !estadoApp.negocios[idx3428].echeqs)) {
-        estadoApp.negocios[idx3428] = seed3428;
       }
-
-      // Si no tiene el negocio 3421 de Cría/Reproducción, agregarlo de ejemplo
-      if (!estadoApp.negocios.some(n => n.id === 3421)) {
-        const negCria = DATOS_INICIALES_NEGOCIOS.find(n => n.id === 3421);
-        if (negCria) estadoApp.negocios.push(negCria);
-      }
-      guardarEnLocalStorage();
     } catch (e) {
       estadoApp.negocios = DATOS_INICIALES_NEGOCIOS;
     }
   } else {
     estadoApp.negocios = DATOS_INICIALES_NEGOCIOS;
-    guardarEnLocalStorage();
   }
 
   if (clientesGuardados) {
     try {
       estadoApp.clientes = JSON.parse(clientesGuardados);
-      // Asegurar que El Despertar y Quickfood existan
       DATOS_INICIALES_CLIENTES.forEach(seedCli => {
         if (!estadoApp.clientes.some(c => c.nombre.toUpperCase() === seedCli.nombre.toUpperCase())) {
           estadoApp.clientes.push(seedCli);
         }
       });
-      guardarEnLocalStorage();
     } catch (e) {
       estadoApp.clientes = DATOS_INICIALES_CLIENTES;
     }
   } else {
     estadoApp.clientes = DATOS_INICIALES_CLIENTES;
-    guardarEnLocalStorage();
-  }
-
-  // Poblar datalists para autocompletar clientes
-  actualizarDatalists();
-
-  // Renderizar vistas iniciales
-  actualizarMetricasKPI();
-  renderizarTablaNegocios();
-  renderizarTablaClientes();
-  renderizarVencimientos();
-
-  // Inicializar módulo de Liquidación y Control
-  estadoApp.negocioLiquidacionId = 3428;
-  inicializarLiquidacion();
-
-  // Cargar primer negocio en formulario como referencia
-  if (estadoApp.negocios.length > 0) {
-    cargarNegocioEnFormulario(estadoApp.negocios[0]);
   }
 }
 
@@ -579,6 +668,12 @@ function guardarNegocioActual() {
   // Buscar si ya existe para actualizar, sino agregar
   const index = estadoApp.negocios.findIndex(n => n.id === id);
   if (index >= 0) {
+    if (estadoApp.negocios[index].echeqs) {
+      negocioGuardado.echeqs = estadoApp.negocios[index].echeqs;
+    }
+    if (estadoApp.negocios[index].hacienda?.tropaRomaneo && !negocioGuardado.hacienda.tropaRomaneo) {
+      negocioGuardado.hacienda.tropaRomaneo = estadoApp.negocios[index].hacienda.tropaRomaneo;
+    }
     estadoApp.negocios[index] = negocioGuardado;
   } else {
     estadoApp.negocios.unshift(negocioGuardado);
@@ -590,6 +685,10 @@ function guardarNegocioActual() {
   verificarYGuardarCliente(negocioGuardado.acargo, "Representante / Intermediario");
 
   guardarEnLocalStorage();
+
+  // Sincronizar en tiempo real con Google Cloud Firestore
+  sincronizarNegocioEnNube(negocioGuardado);
+
   showToast(`¡Negocio #${id} guardado con éxito!`, '💾');
   router('negocios');
 }
@@ -609,6 +708,28 @@ function verificarYGuardarCliente(nombre, rolPorDefecto) {
     };
     estadoApp.clientes.push(nuevoCli);
     actualizarDatalists();
+    guardarEnLocalStorage();
+    sincronizarClienteEnNube(nuevoCli);
+  }
+}
+
+function sincronizarNegocioEnNube(negocio) {
+  if (typeof modoNubeActivo !== 'undefined' && modoNubeActivo && db && negocio && negocio.id) {
+    db.collection('negocios').doc(String(negocio.id)).set(negocio).then(() => {
+      console.log(`🔥 [Firestore] Negocio #${negocio.id} sincronizado en la nube.`);
+    }).catch(err => {
+      console.error("Error al sincronizar negocio en Firestore:", err);
+    });
+  }
+}
+
+function sincronizarClienteEnNube(cliente) {
+  if (typeof modoNubeActivo !== 'undefined' && modoNubeActivo && db && cliente && cliente.id) {
+    db.collection('clientes').doc(String(cliente.id)).set(cliente).then(() => {
+      console.log(`🔥 [Firestore] Cliente ${cliente.nombre} sincronizado en la nube.`);
+    }).catch(err => {
+      console.error("Error al sincronizar cliente en Firestore:", err);
+    });
   }
 }
 
@@ -898,6 +1019,67 @@ function filtrarNegociosPorCliente(nombre) {
   router('negocios');
   document.getElementById('filtro-busqueda').value = nombre;
   renderizarTablaNegocios();
+}
+
+function abrirModalNuevoCliente() {
+  document.getElementById('modal-cliente').classList.remove('hidden');
+  document.getElementById('inp-modal-cli-nombre').value = '';
+  document.getElementById('inp-modal-cli-cuit').value = '';
+  document.getElementById('inp-modal-cli-renspa').value = '';
+  document.getElementById('inp-modal-cli-loc').value = '';
+  document.getElementById('inp-modal-cli-tel').value = '';
+  document.getElementById('inp-modal-cli-com').value = '1.5';
+  document.getElementById('inp-modal-cli-nombre').focus();
+}
+
+function cerrarModalNuevoCliente() {
+  document.getElementById('modal-cliente').classList.add('hidden');
+}
+
+function guardarClienteDesdeModal() {
+  const nombre = document.getElementById('inp-modal-cli-nombre').value.trim();
+  if (!nombre) {
+    showToast('Por favor ingrese el Nombre o Razón Social', '⚠️');
+    return;
+  }
+
+  const rol = document.getElementById('inp-modal-cli-rol').value;
+  const cuit = document.getElementById('inp-modal-cli-cuit').value.trim() || '-';
+  const renspa = document.getElementById('inp-modal-cli-renspa').value.trim() || '-';
+  const localidad = document.getElementById('inp-modal-cli-loc').value.trim() || '-';
+  const telefono = document.getElementById('inp-modal-cli-tel').value.trim() || '-';
+  const comisionHabitual = parseFloat(document.getElementById('inp-modal-cli-com').value) || 1.5;
+
+  const index = estadoApp.clientes.findIndex(c => c.nombre.toUpperCase() === nombre.toUpperCase());
+  let cliente;
+  if (index >= 0) {
+    cliente = estadoApp.clientes[index];
+    cliente.rol = rol;
+    cliente.cuit = cuit;
+    cliente.renspa = renspa;
+    cliente.localidad = localidad;
+    cliente.telefono = telefono;
+    cliente.comisionHabitual = comisionHabitual;
+  } else {
+    cliente = {
+      id: Date.now() + Math.floor(Math.random() * 100),
+      nombre: nombre.toUpperCase(),
+      rol,
+      cuit,
+      renspa,
+      localidad,
+      telefono,
+      comisionHabitual
+    };
+    estadoApp.clientes.push(cliente);
+  }
+
+  guardarEnLocalStorage();
+  sincronizarClienteEnNube(cliente);
+  actualizarDatalists();
+  renderizarTablaClientes();
+  cerrarModalNuevoCliente();
+  showToast(`Cliente ${cliente.nombre} guardado`, '💾');
 }
 
 function actualizarDatalists() {
@@ -1541,6 +1723,7 @@ function modificarECheq(idx, campo, valor) {
   if (!neg || !neg.echeqs || !neg.echeqs[idx]) return;
   neg.echeqs[idx][campo] = valor;
   guardarEnLocalStorage();
+  sincronizarNegocioEnNube(neg);
   actualizarECheqsTotales();
 }
 
@@ -1560,6 +1743,7 @@ function agregarFilaECheq() {
   });
 
   guardarEnLocalStorage();
+  sincronizarNegocioEnNube(neg);
   renderizarECheqs(neg);
   showToast("Nuevo cheque agregado a la operación", '💳');
 }
@@ -1569,6 +1753,7 @@ function eliminarFilaECheq(idx) {
   if (!neg || !neg.echeqs) return;
   neg.echeqs.splice(idx, 1);
   guardarEnLocalStorage();
+  sincronizarNegocioEnNube(neg);
   renderizarECheqs(neg);
 }
 
