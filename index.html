@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgroGestión - Consignataria Ganadera</title>
+  <!-- Tailwind CSS -->
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col font-sans">
+
+  <!-- BARRA SUPERIOR DE NAVEGACIÓN -->
+  <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <!-- Logotipo & Nombre -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-xl shadow">
+          🐂
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-lg tracking-tight text-white" id="header-empresa">FCO Agroganadera SRL</span>
+            <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-mono font-bold border border-emerald-500/30">v1.0 Pro</span>
+          </div>
+          <span class="text-xs text-slate-400">Sistema Integral de Consignación y Liquidación Ganadera</span>
+        </div>
+      </div>
+
+      <!-- Menú de Vistas -->
+      <nav class="hidden md:flex items-center gap-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700/60">
+        <button onclick="router('negocios')" id="nav-btn-negocios" class="nav-item active px-3.5 py-1.5 rounded-lg text-xs font-semibold transition">
+          📂 Negocios
+        </button>
+        <button onclick="router('nuevo')" id="nav-btn-nuevo" class="nav-item px-3.5 py-1.5 rounded-lg text-xs font-semibold transition">
+          ➕ Cargar Operación
+        </button>
+        <button onclick="router('liquidacion')" id="nav-btn-liquidacion" class="nav-item px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+          <span>📊</span>
+          <span>Liquidación y Control</span>
+        </button>
+        <button onclick="router('clientes')" id="nav-btn-clientes" class="nav-item px-3.5 py-1.5 rounded-lg text-xs font-semibold transition">
+          👥 Clientes / Productores
+        </button>
+        <button onclick="router('vencimientos')" id="nav-btn-vencimientos" class="nav-item px-3.5 py-1.5 rounded-lg text-xs font-semibold transition">
+          📅 Vencimientos
+        </button>
+      </nav>
+
+      <!-- Botón de Acción Rápida -->
+      <div class="flex items-center gap-3">
+        <div class="hidden sm:flex flex-col text-right text-xs">
+          <span class="text-slate-400">Operador</span>
+          <span class="font-bold text-slate-200" id="header-operador">TOMI R.</span>
+        </div>
+        <button onclick="abrirModalNuevoNegocio()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-sm">
+          <span>⚡</span>
+          <span>Nuevo Negocio</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+    <!-- ======================================================== -->
+    <!-- SECCIÓN 1: LISTADO DE NEGOCIOS & TABLERO RESUMEN         -->
+    <!-- ======================================================== -->
+    <section id="seccion-negocios" class="seccion-vista space-y-6">
+      
+      <!-- Métricas Clave del Mes -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Tarjeta 1: Total Hacienda -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
+            <span>Volumen Operado</span>
+            <span class="text-blue-600 text-lg">💰</span>
+          </div>
+          <div class="text-2xl font-black text-slate-900" id="kpi-total-operado">$ 273.700.080</div>
+          <p class="text-xs text-slate-500 mt-1 font-medium"><span id="kpi-total-cabezas" class="text-slate-700 font-bold">153</span> cabezas comercializadas</p>
+        </div>
+
+        <!-- Tarjeta 2: Kilos Operados -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
+            <span>Kilos Totales</span>
+            <span class="text-amber-600 text-lg">⚖️</span>
+          </div>
+          <div class="text-2xl font-black text-slate-900" id="kpi-total-kilos">47.856 kg</div>
+          <p class="text-xs text-slate-500 mt-1 font-medium">Promedio: <strong class="text-slate-700" id="kpi-promedio-kilo">312 kg/cab</strong></p>
+        </div>
+
+        <!-- Tarjeta 3: Comisiones Totales -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
+            <span>Comisiones Brutas</span>
+            <span class="text-emerald-600 text-lg">📈</span>
+          </div>
+          <div class="text-2xl font-black text-emerald-600" id="kpi-comisiones-brutas">$ 12.713.504</div>
+          <p class="text-xs text-slate-500 mt-1 font-medium">Subtotal 1 (Comisiones C + V)</p>
+        </div>
+
+        <!-- Tarjeta 4: Margen Neto de la Consignataria -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm border-l-4 border-l-emerald-600">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
+            <span>Margen Neto (I.D - C.D)</span>
+            <span class="text-emerald-600 text-lg">🏆</span>
+          </div>
+          <div class="text-2xl font-black text-slate-900" id="kpi-margen-neto">$ 9.579.502</div>
+          <p class="text-xs text-emerald-600 mt-1 font-bold">Ganancia neta FCO Agroganadera</p>
+        </div>
+      </div>
+
+      <!-- Barra de Filtros y Búsqueda -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        <div class="flex-1 relative">
+          <span class="absolute left-3.5 top-2.5 text-slate-400">🔍</span>
+          <input type="text" id="filtro-busqueda" oninput="renderizarTablaNegocios()" placeholder="Buscar por N° negocio, vendedor, comprador, tropa..." class="w-full pl-10 pr-4 py-2 text-xs md:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+        </div>
+        <div class="flex items-center gap-2">
+          <select id="filtro-tipo" onchange="renderizarTablaNegocios()" class="text-xs md:text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white focus:outline-none font-medium text-slate-700">
+            <option value="todos">Todos los Tipos</option>
+            <option value="Invernada">🌾 Invernada</option>
+            <option value="Faena">🥩 Faena</option>
+            <option value="Cría / Reproducción">🐂 Cría / Reproducción</option>
+          </select>
+          <select id="filtro-estado" onchange="renderizarTablaNegocios()" class="text-xs md:text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white focus:outline-none font-medium text-slate-700">
+            <option value="todos">Todos los Estados</option>
+            <option value="Pendiente Facturar">Pendiente Facturar</option>
+            <option value="Facturado">Facturado</option>
+            <option value="Cobrado">Cobrado / Liquidado</option>
+          </select>
+          <button onclick="exportarExcelCSV()" class="inline-flex items-center gap-1.5 px-3 py-2 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition">
+            <span>📥</span> Exportar CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabla Principal de Operaciones -->
+      <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs md:text-sm border-collapse">
+            <thead class="bg-slate-50 text-slate-600 uppercase text-[11px] font-bold border-b border-slate-200 tracking-wider">
+              <tr>
+                <th class="py-3.5 px-4">Neg #</th>
+                <th class="py-3.5 px-4">Fecha</th>
+                <th class="py-3.5 px-4">Tipo</th>
+                <th class="py-3.5 px-4">Vendedor</th>
+                <th class="py-3.5 px-4">Comprador</th>
+                <th class="py-3.5 px-4">Hacienda / Tropas</th>
+                <th class="py-3.5 px-4 text-right">Total Venta</th>
+                <th class="py-3.5 px-4 text-right">Margen (I.D-C.D)</th>
+                <th class="py-3.5 px-4 text-center">Estado</th>
+                <th class="py-3.5 px-4 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-negocios-body" class="divide-y divide-slate-100">
+              <!-- Renderizado dinámico desde app.js -->
+            </tbody>
+          </table>
+        </div>
+        <div id="tabla-vacia" class="hidden p-12 text-center text-slate-400">
+          <p class="text-3xl mb-2">📋</p>
+          <p class="text-sm font-semibold">No se encontraron negocios con esos filtros</p>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- SECCIÓN 2: CARGA / EDICIÓN DE NEGOCIO (FORMULARIO ÁGIL)   -->
+    <!-- ======================================================== -->
+    <section id="seccion-formulario" class="seccion-vista hidden space-y-6">
+      
+      <!-- Barra de Título del Formulario -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-4 md:p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">#</span>
+            <h2 class="text-xl font-black text-slate-900" id="form-titulo">Cargar Operación Ganadera</h2>
+            <span id="form-badge-id" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">Negocio #3423</span>
+          </div>
+          <p class="text-xs text-slate-500 mt-1">Complete los datos. Todos los importes, vencimientos y márgenes se calculan automáticamente.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="copiarWhatsAppActual()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition shadow-sm">
+            <span>📲</span> WhatsApp
+          </button>
+          <button onclick="abrirModalVistaPrevia()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition shadow-sm">
+            <span>👁️</span> Vista Excel / Imprimir
+          </button>
+          <button onclick="guardarNegocioActual()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-sm">
+            <span>💾</span> Guardar Negocio
+          </button>
+        </div>
+      </div>
+
+      <!-- Tarjeta 1: Encabezado y Partes -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3 mb-4">
+          <span class="w-6 h-6 rounded-md bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">1</span>
+          Partes Intervinientes y Datos Generales
+        </h3>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Negocio N°</label>
+            <input type="number" id="inp-neg-id" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm font-black text-red-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50" readonly>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Fecha de Operación</label>
+            <input type="date" id="inp-fecha" onchange="recalcularTodo()" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Vendedor (Productor)</label>
+            <input type="text" list="lista-vendedores" id="inp-vendedor" placeholder="Ej: LUCIANO CASADO" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <datalist id="lista-vendedores"></datalist>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Comprador (Cliente)</label>
+            <input type="text" list="lista-compradores" id="inp-comprador" placeholder="Ej: FIROKI SRL" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <datalist id="lista-compradores"></datalist>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">A Cargo De (Representante)</label>
+            <input type="text" list="lista-representantes" id="inp-acargo" placeholder="Ej: ARIEL SAENZ Y CIA." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <datalist id="lista-representantes"></datalist>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta 2: Detalle de Hacienda / Tropas -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-xs">2</span>
+            Hacienda / Tropas Comercializadas
+          </h3>
+          <span class="text-xs text-slate-500">Cálculo en vivo de Kilos y Subtotal</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Tipo de Operación / Destino</label>
+            <div class="relative">
+              <select id="inp-hac-tipo" onchange="recalcularTodo()" class="w-full px-3 py-2 border-2 border-emerald-400 bg-emerald-50/40 rounded-xl text-sm font-black text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                <option value="Invernada">🌾 Invernada</option>
+                <option value="Faena">🥩 Faena</option>
+                <option value="Cría / Reproducción">🐂 Cría / Reproducción</option>
+              </select>
+            </div>
+          </div>
+          <div class="sm:col-span-2 lg:col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Detalle / Categoría</label>
+            <input type="text" id="inp-hac-detalle" placeholder="Ej: 108 TERNEROS DE INVERNADA" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Cantidad Cabezas</label>
+            <input type="number" id="inp-hac-cabezas" oninput="recalcularTodo()" placeholder="108" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Kilos Totales</label>
+            <input type="number" id="inp-hac-kilos" oninput="recalcularTodo()" placeholder="25356" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <span class="text-[10px] text-slate-400 block mt-0.5" id="lbl-peso-promedio">Promedio: 0 kg/cab</span>
+          </div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 items-center bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Precio por Kilo ($)</label>
+            <div class="relative">
+              <span class="absolute left-3 top-2 text-slate-400 text-sm font-bold">$</span>
+              <input type="number" step="0.01" id="inp-hac-precio" oninput="recalcularTodo()" placeholder="6180.00" class="w-full pl-7 pr-3 py-2 border border-slate-300 rounded-xl text-sm font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white">
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500 font-medium">Destino:</span>
+            <span id="badge-tipo-resumen" class="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300">🌾 Invernada</span>
+          </div>
+          <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-right">
+            <div class="text-[11px] font-bold text-amber-800 uppercase tracking-wider">Total Hacienda</div>
+            <div class="text-lg font-black text-amber-950 font-mono" id="lbl-hac-subtotal">$ 0,00</div>
+            <div class="text-[10px] text-amber-700 font-semibold">+ IVA correspondiente</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta 3: Condiciones Comerciales Venta & Compra -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- CONDICIONES DE VENTA -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-md bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs">3A</span>
+              Condiciones de VENTA (Cobro)
+            </h3>
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200">Al Vendedor</span>
+          </div>
+
+          <!-- Plazos Venta -->
+          <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Plazo 1 (Días)</label>
+              <input type="number" id="inp-vta-dias1" oninput="recalcularTodo()" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-bold">
+              <span class="text-[11px] text-purple-800 font-medium block mt-1" id="lbl-vta-vto1">-</span>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Plazo 2 (Días)</label>
+              <input type="number" id="inp-vta-dias2" oninput="recalcularTodo()" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-bold">
+              <span class="text-[11px] text-purple-800 font-medium block mt-1" id="lbl-vta-vto2">-</span>
+            </div>
+          </div>
+
+          <!-- Comisión Venta -->
+          <div class="border-t border-slate-100 pt-3">
+            <label class="block text-xs font-bold text-slate-700 mb-2">Comisión de Venta (Ingreso FCO)</label>
+            <div class="grid grid-cols-3 gap-3">
+              <div>
+                <span class="text-[10px] text-slate-500 font-bold block mb-1">Porcentaje %</span>
+                <div class="relative">
+                  <input type="number" step="0.1" id="inp-vta-com-pct" oninput="calcularComisionVentaDesdePct()" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-bold">
+                  <span class="absolute right-3 top-1.5 text-slate-400 text-xs font-bold">%</span>
+                </div>
+              </div>
+              <div class="col-span-2">
+                <span class="text-[10px] text-slate-500 font-bold block mb-1">Importe Comisión ($)</span>
+                <input type="number" step="0.01" id="inp-vta-com-imp" oninput="recalcularTodo()" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-black text-slate-900 font-mono">
+              </div>
+            </div>
+            <input type="text" id="inp-vta-com-desc" placeholder="COM MAS IVA FCO 1,5%" class="mt-2 w-full text-xs text-slate-500 border border-slate-200 rounded px-2 py-1 bg-slate-50">
+          </div>
+        </div>
+
+        <!-- CONDICIONES DE COMPRA -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-md bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">3B</span>
+              Condiciones de COMPRA (Pago)
+            </h3>
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">Al Comprador</span>
+          </div>
+
+          <!-- Plazos Compra -->
+          <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Plazo 1 (Días)</label>
+              <input type="number" id="inp-cmp-dias1" oninput="recalcularTodo()" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-bold">
+              <span class="text-[11px] text-indigo-800 font-medium block mt-1" id="lbl-cmp-vto1">-</span>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Plazo 2 (Días)</label>
+              <input type="number" id="inp-cmp-dias2" oninput="recalcularTodo()" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-bold">
+              <span class="text-[11px] text-indigo-800 font-medium block mt-1" id="lbl-cmp-vto2">-</span>
+            </div>
+          </div>
+
+          <!-- Comisión Compra -->
+          <div class="border-t border-slate-100 pt-3">
+            <label class="block text-xs font-bold text-slate-700 mb-2">Comisión de Compra (Ingreso FCO)</label>
+            <div class="grid grid-cols-3 gap-3">
+              <div>
+                <span class="text-[10px] text-slate-500 font-bold block mb-1">Porcentaje %</span>
+                <div class="relative">
+                  <input type="number" step="0.1" id="inp-cmp-com-pct" oninput="calcularComisionCompraDesdePct()" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-bold">
+                  <span class="absolute right-3 top-1.5 text-slate-400 text-xs font-bold">%</span>
+                </div>
+              </div>
+              <div class="col-span-2">
+                <span class="text-[10px] text-slate-500 font-bold block mb-1">Importe Comisión ($)</span>
+                <input type="number" step="0.01" id="inp-cmp-com-imp" oninput="recalcularTodo()" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-black text-slate-900 font-mono">
+              </div>
+            </div>
+            <input type="text" id="inp-cmp-com-desc" placeholder="COM MAS IVA 2% FCO" class="mt-2 w-full text-xs text-slate-500 border border-slate-200 rounded px-2 py-1 bg-slate-50">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Tarjeta 4: Liquidación Económica & Margen Neto -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">4</span>
+            Liquidación Financiera: Subtotal 1 (Ingresos) vs Subtotal 2 (Costos)
+          </h3>
+          <span class="text-xs text-slate-500">Cálculo de Margen I.D - C.D</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          <!-- Columna Subtotal 1: Ingresos -->
+          <div class="bg-emerald-50/60 border border-emerald-200 rounded-xl p-4 space-y-3">
+            <div class="flex items-center justify-between border-b border-emerald-200 pb-2">
+              <span class="text-xs font-black text-emerald-900 uppercase">1. Ingresos Directos</span>
+              <span class="text-sm font-black text-emerald-700 font-mono" id="lbl-subtotal-1">$ 0,00</span>
+            </div>
+
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">Diferencia Comp-Venta:</span>
+                <input type="number" step="0.01" id="inp-ing-dif" oninput="recalcularTodo()" class="w-28 px-2 py-1 border border-slate-300 rounded text-right font-mono bg-white">
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">Comisión de Compra (C):</span>
+                <span class="font-bold text-slate-800 font-mono" id="lbl-res-com-c">$ 0,00</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">Comisión de Venta (V):</span>
+                <span class="font-bold text-slate-800 font-mono" id="lbl-res-com-v">$ 0,00</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">Otro Ingreso 1:</span>
+                <input type="number" step="0.01" id="inp-ing-otro1" oninput="recalcularTodo()" class="w-28 px-2 py-1 border border-slate-300 rounded text-right font-mono bg-white">
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">Otro Ingreso 2:</span>
+                <input type="number" step="0.01" id="inp-ing-otro2" oninput="recalcularTodo()" class="w-28 px-2 py-1 border border-slate-300 rounded text-right font-mono bg-white">
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna Subtotal 2: Costos Directos -->
+          <div class="bg-rose-50/60 border border-rose-200 rounded-xl p-4 space-y-3">
+            <div class="flex items-center justify-between border-b border-rose-200 pb-2">
+              <span class="text-xs font-black text-rose-900 uppercase">2. Costos Directos</span>
+              <span class="text-sm font-black text-rose-700 font-mono" id="lbl-subtotal-2">$ 0,00</span>
+            </div>
+
+            <div class="space-y-2 text-xs">
+              <div>
+                <div class="flex justify-between items-center mb-0.5">
+                  <span class="text-slate-700 font-bold">Comisión Costo 1:</span>
+                  <input type="number" step="0.01" id="inp-costo-com1" oninput="recalcularTodo()" class="w-28 px-2 py-1 border border-slate-300 rounded text-right font-mono bg-white">
+                </div>
+                <input type="text" id="inp-costo-desc1" placeholder="COM LUCIANO CASADO 2%" class="w-full text-[11px] text-slate-500 border border-slate-200 rounded px-1.5 py-0.5 bg-white">
+              </div>
+
+              <div>
+                <div class="flex justify-between items-center mb-0.5">
+                  <span class="text-slate-700 font-medium">Comisión Costo 2:</span>
+                  <input type="number" step="0.01" id="inp-costo-com2" oninput="recalcularTodo()" class="w-28 px-2 py-1 border border-slate-300 rounded text-right font-mono bg-white">
+                </div>
+                <input type="text" id="inp-costo-desc2" placeholder="Descripción adicional" class="w-full text-[11px] text-slate-500 border border-slate-200 rounded px-1.5 py-0.5 bg-white">
+              </div>
+
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">Otro Costo 1:</span>
+                <input type="number" step="0.01" id="inp-costo-otro1" oninput="recalcularTodo()" class="w-28 px-2 py-1 border border-slate-300 rounded text-right font-mono bg-white">
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">Otro Costo 2 / 3:</span>
+                <input type="number" step="0.01" id="inp-costo-otro2" oninput="recalcularTodo()" class="w-28 px-2 py-1 border border-slate-300 rounded text-right font-mono bg-white">
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna Resultado & Notas -->
+          <div class="bg-slate-900 text-white rounded-xl p-5 flex flex-col justify-between shadow-md">
+            <div>
+              <span class="text-[11px] text-slate-400 uppercase font-black tracking-wider block mb-1">Margen Neto (I.D - C.D)</span>
+              <div class="text-3xl font-black text-emerald-400 font-mono" id="lbl-margen-neto">$ 0,00</div>
+              <p class="text-xs text-slate-300 mt-1">Resultado de la intermediación</p>
+            </div>
+
+            <div class="border-t border-slate-800 pt-3 mt-4">
+              <label class="block text-xs font-bold text-slate-300 mb-1">Instrucciones de Facturación y Liquidación</label>
+              <textarea id="inp-instrucciones" rows="3" class="w-full text-xs bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-mono" placeholder="LIQUIDA A. SAENZ&#10;FCO FACTURA LAS COM A A. SAENZ"></textarea>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Tarjeta 5: Documentación Oficial (DTE y Romaneo) -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded-md bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">5</span>
+            <h3 class="text-sm font-bold text-slate-900">Documentación Oficial de la Tropa (DTE y Romaneo)</h3>
+          </div>
+          <span class="text-xs text-slate-500">Formatos admitidos: PDF, JPG, PNG (para facturar y liquidar)</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Columna DTE -->
+          <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/60 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-lg">📄</span>
+                <span class="text-xs font-bold text-slate-900 uppercase">DTE (Doc. Tránsito Electrónico - SENASA)</span>
+              </div>
+              <span id="badge-dte-status" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-600">Sin archivo</span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 items-center">
+              <label class="text-xs text-slate-600 font-medium">N° de DTE:</label>
+              <input type="text" id="inp-dte-numero" placeholder="Ej: 0045-12345678" class="col-span-2 text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white font-mono uppercase">
+            </div>
+
+            <!-- Zona de Carga DTE -->
+            <div id="dropzone-dte" class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-xl p-4 text-center cursor-pointer transition bg-white" onclick="document.getElementById('file-dte').click()">
+              <input type="file" id="file-dte" accept=".pdf,image/*" class="hidden" onchange="manejarArchivoDTE(event)">
+              <div id="dte-preview-empty">
+                <div class="text-2xl mb-1">📤</div>
+                <div class="text-xs font-semibold text-slate-700">Hacé clic para adjuntar el DTE</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">Formatos PDF, PNG o JPG (hasta 15 MB)</div>
+              </div>
+              <div id="dte-preview-loaded" class="hidden flex items-center justify-between text-left p-1">
+                <div class="flex items-center gap-2 overflow-hidden">
+                  <span class="text-2xl" id="dte-file-icon">📄</span>
+                  <div class="truncate">
+                    <p class="text-xs font-bold text-slate-800 truncate" id="dte-file-name">archivo_dte.pdf</p>
+                    <p class="text-[10px] text-slate-400" id="dte-file-size">1.2 MB</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1.5 flex-shrink-0">
+                  <button type="button" onclick="event.stopPropagation(); verArchivoModal('dte')" class="px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-bold rounded-lg transition">👁️ Ver</button>
+                  <button type="button" onclick="event.stopPropagation(); eliminarArchivo('dte')" class="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-bold rounded-lg transition">🗑️</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna Romaneo -->
+          <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/60 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-lg">⚖️</span>
+                <span class="text-xs font-bold text-slate-900 uppercase">Romaneo (Pesada de Balanza / Faena)</span>
+              </div>
+              <span id="badge-romaneo-status" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-600">Sin archivo</span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 items-center">
+              <label class="text-xs text-slate-600 font-medium">N° Romaneo:</label>
+              <input type="text" id="inp-romaneo-numero" placeholder="Ej: ROM-3423" class="col-span-2 text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white font-mono uppercase">
+            </div>
+
+            <!-- Zona de Carga Romaneo -->
+            <div id="dropzone-romaneo" class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-xl p-4 text-center cursor-pointer transition bg-white" onclick="document.getElementById('file-romaneo').click()">
+              <input type="file" id="file-romaneo" accept=".pdf,image/*" class="hidden" onchange="manejarArchivoRomaneo(event)">
+              <div id="romaneo-preview-empty">
+                <div class="text-2xl mb-1">📤</div>
+                <div class="text-xs font-semibold text-slate-700">Hacé clic para adjuntar el Romaneo</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">Formatos PDF, PNG o JPG (hasta 15 MB)</div>
+              </div>
+              <div id="romaneo-preview-loaded" class="hidden flex items-center justify-between text-left p-1">
+                <div class="flex items-center gap-2 overflow-hidden">
+                  <span class="text-2xl" id="romaneo-file-icon">⚖️</span>
+                  <div class="truncate">
+                    <p class="text-xs font-bold text-slate-800 truncate" id="romaneo-file-name">romaneo_balanza.pdf</p>
+                    <p class="text-[10px] text-slate-400" id="romaneo-file-size">850 KB</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1.5 flex-shrink-0">
+                  <button type="button" onclick="event.stopPropagation(); verArchivoModal('romaneo')" class="px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-bold rounded-lg transition">👁️ Ver</button>
+                  <button type="button" onclick="event.stopPropagation(); eliminarArchivo('romaneo')" class="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-bold rounded-lg transition">🗑️</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de Acciones Inferior -->
+      <div class="flex items-center justify-end gap-3 pt-4">
+        <button onclick="router('negocios')" class="px-5 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition">
+          Cancelar y Volver
+        </button>
+        <button onclick="guardarNegocioActual()" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-sm flex items-center gap-2">
+          <span>💾</span> Guardar Operación
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- SECCIÓN 3: DIRECTORIO DE CLIENTES / PRODUCTORES          -->
+    <!-- ======================================================== -->
+    <section id="seccion-clientes" class="seccion-vista hidden space-y-6">
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-black text-slate-900">Directorio de Productores, Clientes y Representantes</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Almacene CUIT, teléfonos y condiciones para autocompletar operaciones al instante.</p>
+        </div>
+        <button onclick="abrirModalNuevoCliente()" class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm transition">
+          <span>➕</span> Nuevo Contacto
+        </button>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <table class="w-full text-left text-xs md:text-sm">
+          <thead class="bg-slate-50 text-slate-600 font-bold uppercase text-[11px] border-b border-slate-200">
+            <tr>
+              <th class="py-3 px-4">Razón Social / Nombre</th>
+              <th class="py-3 px-4">Rol Habitual</th>
+              <th class="py-3 px-4">CUIT</th>
+              <th class="py-3 px-4">Localidad</th>
+              <th class="py-3 px-4">Teléfono WhatsApp</th>
+              <th class="py-3 px-4 text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-clientes-body" class="divide-y divide-slate-100">
+            <!-- Renderizado dinámico -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- SECCIÓN 4: CALENDARIO DE VENCIMIENTOS DE PLAZOS          -->
+    <!-- ======================================================== -->
+    <section id="seccion-vencimientos" class="seccion-vista hidden space-y-6">
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <h2 class="text-xl font-black text-slate-900">Cronograma de Vencimientos (Cobros y Pagos)</h2>
+        <p class="text-xs text-slate-500 mt-0.5">Controle qué plazos comerciales vencen próximamente para coordinar transferencias y cheques.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Vencimientos Venta (A Cobrar) -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="text-sm font-bold text-purple-900 flex items-center gap-2">
+              <span>📥</span> Vencimientos de Venta (A Cobrar)
+            </h3>
+            <span class="text-xs text-purple-700 bg-purple-50 px-2 py-0.5 rounded font-bold">Cobranzas</span>
+          </div>
+          <div id="lista-vencimientos-venta" class="space-y-2 text-xs">
+            <!-- Render dinámico -->
+          </div>
+        </div>
+
+        <!-- Vencimientos Compra (A Pagar) -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="text-sm font-bold text-indigo-900 flex items-center gap-2">
+              <span>📤</span> Vencimientos de Compra (A Pagar)
+            </h3>
+            <span class="text-xs text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded font-bold">Pagos</span>
+          </div>
+          <div id="lista-vencimientos-compra" class="space-y-2 text-xs">
+            <!-- Render dinámico -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- SECCIÓN 5: LIQUIDACIÓN Y CONTROL DE COMPRA / VENTA       -->
+    <!-- ======================================================== -->
+    <section id="seccion-liquidacion" class="seccion-vista hidden space-y-6">
+      
+      <!-- Barra Superior de Control y Selección de Operación -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-2xl">📊</span>
+              <div>
+                <h2 class="text-lg font-black text-slate-900 tracking-tight">Liquidación y Control de Compra / Venta</h2>
+                <p class="text-xs text-slate-500">Conciliación contable simultánea, cálculo de IVA, retenciones RG 830, cheques digitales y auditoría de ajuste a cero</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Selector de Operación y Acciones -->
+          <div class="flex flex-wrap items-center gap-2.5">
+            <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+              <label for="liq-select-negocio" class="text-xs font-bold text-slate-600">Operación:</label>
+              <select id="liq-select-negocio" onchange="cambiarNegocioLiquidacion(this.value)" class="text-xs font-black text-emerald-800 bg-white border border-slate-300 rounded-lg px-2.5 py-1 focus:ring-2 focus:ring-emerald-500 outline-none">
+                <!-- Opciones dinámicas -->
+              </select>
+            </div>
+
+            <button onclick="sincronizarConNegocio()" title="Vuelve a cargar los datos originales del Negocio" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5">
+              <span>🔄</span> Sincronizar
+            </button>
+
+            <button onclick="exportarLiquidacionWhatsApp()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+              <span>📲</span> Enviar WhatsApp
+            </button>
+
+            <button onclick="abrirModalLiquidacionImpresion()" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+              <span>🖨️</span> Imprimir / PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- Ficha de Encabezado de la Operación Seleccionada -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+          <div>
+            <span class="text-slate-400 block font-semibold">Negocio N°</span>
+            <span class="font-black text-slate-900 text-sm" id="liq-info-id">#03428</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block font-semibold">Destino / Tipo</span>
+            <span id="liq-info-tipo" class="inline-block mt-0.5 px-2 py-0.5 rounded-full font-bold text-[11px] bg-purple-100 text-purple-800">Faena</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block font-semibold">Fecha Faena / Carga</span>
+            <strong class="text-slate-800" id="liq-info-fecha">24/03/2026</strong>
+          </div>
+          <div>
+            <span class="text-slate-400 block font-semibold">DTE Senasa</span>
+            <div class="flex items-center gap-1">
+              <span class="font-mono font-bold text-slate-900" id="liq-info-dte">0326493104</span>
+              <button onclick="verDocDesdeLiquidacion('dte')" class="text-blue-600 hover:text-blue-800 font-bold" title="Ver DTE">👁️</button>
+            </div>
+          </div>
+          <div>
+            <span class="text-slate-400 block font-semibold">Romaneo Balanza</span>
+            <div class="flex items-center gap-1">
+              <span class="font-mono font-bold text-slate-900" id="liq-info-romaneo">ROM-15340</span>
+              <button onclick="verDocDesdeLiquidacion('romaneo')" class="text-emerald-600 hover:text-emerald-800 font-bold" title="Ver Romaneo">👁️</button>
+            </div>
+          </div>
+          <div>
+            <span class="text-slate-400 block font-semibold">Sincronización</span>
+            <span class="text-emerald-600 font-bold flex items-center gap-1 text-[11px] mt-0.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Automática
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjetas de Auditoría y Métricas Clave (KPIs) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+        <!-- Venta Total Frigorífico -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <div class="text-[11px] font-bold text-emerald-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+            <span>Facturación Venta</span>
+            <span>🥩</span>
+          </div>
+          <div class="text-xl font-black text-slate-900 font-mono" id="liq-kpi-total-venta">$ 59.038.598,14</div>
+          <p class="text-[11px] text-slate-500 mt-1 font-medium">A cobrar a <strong id="liq-kpi-nombre-comprador">QUICKFOOD</strong></p>
+        </div>
+
+        <!-- Compra Total Productor -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <div class="text-[11px] font-bold text-blue-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+            <span>Liquidación Compra</span>
+            <span>🌾</span>
+          </div>
+          <div class="text-xl font-black text-slate-900 font-mono" id="liq-kpi-total-compra">$ 57.973.993,70</div>
+          <p class="text-[11px] text-slate-500 mt-1 font-medium">Costo total liquidación productor</p>
+        </div>
+
+        <!-- Retención RG 830 -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <div class="text-[11px] font-bold text-purple-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+            <span>Retención RG 830 (2%)</span>
+            <span>🏛️</span>
+          </div>
+          <div class="text-xl font-black text-purple-700 font-mono" id="liq-kpi-ret-iigg">$ 1.053.511,92</div>
+          <p class="text-[11px] text-slate-500 mt-1 font-medium">Ganancias depositadas en AFIP</p>
+        </div>
+
+        <!-- Neto a Transferir Productor -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <div class="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+            <span>Neto a Transferir</span>
+            <span>💳</span>
+          </div>
+          <div class="text-xl font-black text-indigo-700 font-mono" id="liq-kpi-neto-productor">$ 51.052.589,99</div>
+          <p class="text-[11px] text-slate-500 mt-1 font-medium">Pago bancario a <strong id="liq-kpi-nombre-vendedor">EL DESPERTAR SA</strong></p>
+        </div>
+
+        <!-- UTILIDAD NETA DE OPERACIÓN (Estilo caja rosada del Excel) -->
+        <div class="bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="text-[11px] font-black text-rose-900 uppercase tracking-wider mb-1 flex items-center justify-between">
+              <span>UTILIDAD FCO</span>
+              <span class="text-rose-600 font-bold">🏆</span>
+            </div>
+            <div class="text-2xl font-black text-rose-700 font-mono" id="liq-kpi-utilidad">$ 1.064.604,44</div>
+          </div>
+          <div class="mt-2 flex items-center justify-between text-[11px]">
+            <span class="text-rose-800 font-medium">Cuadre Operación:</span>
+            <span id="liq-kpi-cuadre-badge" class="px-2 py-0.5 rounded font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+              ✓ AJUSTE A 0
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- DOBLE PANEL COMPARATIVO: COMPRA vs VENTA                 -->
+      <!-- ======================================================== -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- PANEL IZQUIERDO: LIQUIDACIÓN DE COMPRA (PRODUCTOR) -->
+        <div class="bg-white border-2 border-slate-300 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+          <!-- Encabezado Compra -->
+          <div class="bg-slate-800 text-white p-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">🌾</span>
+              <div>
+                <h3 class="font-extrabold text-sm uppercase tracking-wide">Liquidación de Compra (Productor)</h3>
+                <p class="text-[11px] text-slate-300">Vendedor: <strong id="liq-cmp-vendedor-nombre" class="text-emerald-400">EL DESPERTAR SA</strong></p>
+              </div>
+            </div>
+            <div class="text-right text-[11px] font-mono text-slate-300">
+              <div>CUIT: <strong id="liq-cmp-vendedor-cuit" class="text-white">30-70701728-3</strong></div>
+              <div>RENSPA: <strong id="liq-cmp-vendedor-renspa" class="text-white">03.009.0.10217/00</strong></div>
+            </div>
+          </div>
+
+          <div class="p-4 space-y-4 flex-1">
+            <!-- Tabla de Tropa / Hacienda Compra -->
+            <div class="border border-slate-200 rounded-xl overflow-hidden">
+              <table class="w-full text-xs">
+                <thead class="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold">
+                  <tr>
+                    <th class="p-2 text-left">Categoría</th>
+                    <th class="p-2 text-center">Cab</th>
+                    <th class="p-2 text-right">Kg Netos</th>
+                    <th class="p-2 text-right">Precio $/kg</th>
+                    <th class="p-2 text-right">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody id="liq-tabla-cmp-cuerpo">
+                  <!-- Renglones generados dinámicamente -->
+                </tbody>
+                <tfoot class="bg-slate-50 font-black border-t border-slate-200 text-slate-900">
+                  <tr>
+                    <td class="p-2">TOTALES</td>
+                    <td class="p-2 text-center" id="liq-cmp-tot-cab">26</td>
+                    <td class="p-2 text-right font-mono" id="liq-cmp-tot-kg">7.670</td>
+                    <td class="p-2 text-right font-mono text-slate-500" id="liq-cmp-tot-prom">$ 6.896,95</td>
+                    <td class="p-2 text-right font-mono font-bold text-slate-900" id="liq-cmp-bruto-total">$ 52.899.600,00</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <!-- Desglose Impositivo y Contable Compra -->
+            <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200 space-y-2.5 text-xs">
+              <div class="flex justify-between items-center py-1 border-b border-slate-200 font-bold text-slate-800">
+                <span>Bruto Hacienda:</span>
+                <span class="font-mono text-sm" id="liq-cmp-val-bruto">$ 52.899.600,00</span>
+              </div>
+
+              <!-- Comisión Compra Consignataria -->
+              <div class="flex justify-between items-center py-1 border-b border-slate-200">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-red-700 font-bold">(-) Comisión Compra:</span>
+                  <div class="flex items-center gap-1">
+                    <input type="number" id="liq-cmp-input-com-pct" oninput="recalcularLiquidacionDesdeInputs()" step="0.1" value="1.5" class="w-14 text-center font-bold border border-slate-300 rounded px-1 py-0.5 bg-white text-xs">
+                    <span class="text-slate-500 font-bold">%</span>
+                  </div>
+                </div>
+                <span class="font-mono font-bold text-red-600" id="liq-cmp-val-com">- $ 793.494,00</span>
+              </div>
+
+              <!-- IVA Hacienda (10.5%) -->
+              <div class="flex justify-between items-center py-0.5 text-slate-600">
+                <span>(+) IVA Hacienda (10,5%):</span>
+                <span class="font-mono font-semibold" id="liq-cmp-val-iva-hacienda">$ 5.554.458,00</span>
+              </div>
+
+              <!-- Descuento Crédito IVA Comisión (10.5%) -->
+              <div class="flex justify-between items-center py-0.5 text-slate-600">
+                <span>(-) IVA s/ Comisión (10,5%):</span>
+                <span class="font-mono font-semibold text-red-600" id="liq-cmp-val-iva-comision">- $ 83.316,87</span>
+              </div>
+
+              <!-- IVA Neto Liquidación Compra -->
+              <div class="flex justify-between items-center py-1 border-b border-slate-200 font-bold text-slate-900 bg-white p-2 rounded-lg border">
+                <span>(=) IVA Liquidación Compra:</span>
+                <span class="font-mono text-emerald-700" id="liq-cmp-val-iva-neto">$ 5.471.140,70</span>
+              </div>
+
+              <!-- Subtotal Hacienda + IVA - Comisión -->
+              <div class="flex justify-between items-center py-1 border-b border-slate-200 font-bold text-slate-700">
+                <span>Subtotal Liquidado:</span>
+                <span class="font-mono" id="liq-cmp-val-subtotal">$ 57.577.246,70</span>
+              </div>
+
+              <!-- Retención Ganancias RG 830 -->
+              <div class="flex justify-between items-center py-1 border-b border-slate-200">
+                <div>
+                  <span class="font-bold text-purple-900">(-) Retención Ganancias (RG 830):</span>
+                  <span class="block text-[10px] text-slate-500">2% sobre excedente no imponible ($224.000)</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <input type="number" id="liq-cmp-input-ret-iigg" oninput="recalcularLiquidacionDesdeInputs()" step="1" value="1053512" class="w-28 text-right font-mono font-bold text-purple-700 border border-slate-300 rounded px-2 py-0.5 bg-white text-xs">
+                </div>
+              </div>
+
+              <!-- Comisión Colaborador / Terceros (ej. Miguel Figueroa) -->
+              <div class="flex justify-between items-center py-1 border-b border-slate-200">
+                <div class="flex-1 mr-2">
+                  <span class="font-bold text-slate-700">(+) Comisión Colaborador / 3ros:</span>
+                  <input type="text" id="liq-cmp-input-com3ros-desc" oninput="actualizarTextoCom3ros(this.value)" value="Comisión N3428 Miguel Figueroa" class="w-full text-[11px] border border-slate-300 rounded px-1.5 py-0.5 mt-0.5 bg-white">
+                </div>
+                <div class="w-28">
+                  <input type="number" id="liq-cmp-input-com3ros-monto" oninput="recalcularLiquidacionDesdeInputs()" step="1" value="396747" class="w-full text-right font-mono font-bold text-slate-800 border border-slate-300 rounded px-2 py-0.5 bg-white text-xs">
+                </div>
+              </div>
+
+              <!-- Flete / Gastos Productor -->
+              <div class="flex justify-between items-center py-1 border-b border-slate-200 text-slate-600">
+                <span>Flete / Otros Gastos:</span>
+                <input type="number" id="liq-cmp-input-flete" oninput="recalcularLiquidacionDesdeInputs()" step="1" value="0" class="w-24 text-right font-mono border border-slate-300 rounded px-2 py-0.5 bg-white text-xs">
+              </div>
+
+              <!-- TOTAL LIQUIDADO COMPRA -->
+              <div class="flex justify-between items-center p-2.5 rounded-xl bg-slate-900 text-white font-black text-sm">
+                <span>TOTAL COMPRA:</span>
+                <span class="font-mono text-base text-amber-300" id="liq-cmp-val-total">$ 57.973.993,70</span>
+              </div>
+
+              <!-- NETO A TRANSFERIR AL PRODUCTOR -->
+              <div class="flex justify-between items-center p-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-950 font-bold">
+                <div>
+                  <span class="block text-xs">NETO BANCARIO A TRANSFERIR:</span>
+                  <span class="text-[10px] text-indigo-700 font-normal">Total liquidado deducidas retenciones fiscales</span>
+                </div>
+                <span class="font-mono text-base font-black text-indigo-700" id="liq-cmp-val-neto-banco">$ 51.052.589,99</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL DERECHO: LIQUIDACIÓN DE VENTA (FRIGORÍFICO) -->
+        <div class="bg-white border-2 border-emerald-300 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+          <!-- Encabezado Venta -->
+          <div class="bg-emerald-800 text-white p-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">🥩</span>
+              <div>
+                <h3 class="font-extrabold text-sm uppercase tracking-wide">Liquidación de Venta (Frigorífico)</h3>
+                <p class="text-[11px] text-emerald-200">Comprador: <strong id="liq-vta-comprador-nombre" class="text-white">QUICKFOOD</strong></p>
+              </div>
+            </div>
+            <div class="text-right text-[11px] font-mono text-emerald-200">
+              <div>CUIT: <strong id="liq-vta-comprador-cuit" class="text-white">30-50413188-9</strong></div>
+              <div>RENSPA: <strong id="liq-vta-comprador-renspa" class="text-white">20.018.0.00099/00</strong></div>
+            </div>
+          </div>
+
+          <div class="p-4 space-y-4 flex-1">
+            <!-- Tabla de Tropa / Hacienda Venta -->
+            <div class="border border-slate-200 rounded-xl overflow-hidden">
+              <table class="w-full text-xs">
+                <thead class="bg-emerald-50 border-b border-emerald-200 text-emerald-900 font-bold">
+                  <tr>
+                    <th class="p-2 text-left">Categoría</th>
+                    <th class="p-2 text-center">Cab</th>
+                    <th class="p-2 text-right">Kg Netos</th>
+                    <th class="p-2 text-right">Precio $/kg</th>
+                    <th class="p-2 text-right">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody id="liq-tabla-vta-cuerpo">
+                  <!-- Renglones generados dinámicamente -->
+                </tbody>
+                <tfoot class="bg-slate-50 font-black border-t border-slate-200 text-slate-900">
+                  <tr>
+                    <td class="p-2">TOTALES</td>
+                    <td class="p-2 text-center" id="liq-vta-tot-cab">26</td>
+                    <td class="p-2 text-right font-mono" id="liq-vta-tot-kg">7.670</td>
+                    <td class="p-2 text-right font-mono text-slate-500" id="liq-vta-tot-prom">$ 6.896,95</td>
+                    <td class="p-2 text-right font-mono font-bold text-slate-900" id="liq-vta-bruto-total">$ 52.899.600,00</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <!-- Desglose Impositivo y Contable Venta -->
+            <div class="bg-emerald-50/40 rounded-xl p-3.5 border border-emerald-200 space-y-2.5 text-xs">
+              <div class="flex justify-between items-center py-1 border-b border-emerald-100 font-bold text-slate-800">
+                <span>Bruto Hacienda:</span>
+                <span class="font-mono text-sm" id="liq-vta-val-bruto">$ 52.899.600,00</span>
+              </div>
+
+              <!-- Comisión Venta Frigorífico -->
+              <div class="flex justify-between items-center py-1 border-b border-emerald-100">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-emerald-800 font-bold">(+) Comisión Venta Frigorífico:</span>
+                  <div class="flex items-center gap-1">
+                    <input type="number" id="liq-vta-input-com-pct" oninput="recalcularLiquidacionDesdeInputs()" step="0.1" value="1.0" class="w-14 text-center font-bold border border-slate-300 rounded px-1 py-0.5 bg-white text-xs">
+                    <span class="text-slate-500 font-bold">%</span>
+                  </div>
+                </div>
+                <span class="font-mono font-bold text-emerald-700" id="liq-vta-val-com">$ 528.996,00</span>
+              </div>
+
+              <!-- IVA Hacienda (10.5%) -->
+              <div class="flex justify-between items-center py-0.5 text-slate-600">
+                <span>(+) IVA Hacienda (10,5%):</span>
+                <span class="font-mono font-semibold" id="liq-vta-val-iva-hacienda">$ 5.554.458,00</span>
+              </div>
+
+              <!-- IVA sobre Comisión Venta -->
+              <div class="flex justify-between items-center py-0.5 text-slate-600">
+                <div class="flex items-center gap-1.5">
+                  <span>(+) IVA s/ Comisión:</span>
+                  <select id="liq-vta-select-iva-alicuota" onchange="recalcularLiquidacionDesdeInputs()" class="text-[11px] font-bold border border-slate-300 rounded px-1.5 py-0.5 bg-white">
+                    <option value="10.5">10,5%</option>
+                    <option value="21.0">21,0%</option>
+                  </select>
+                </div>
+                <span class="font-mono font-semibold text-emerald-700" id="liq-vta-val-iva-comision">$ 55.544,58</span>
+              </div>
+
+              <!-- IVA Total Liquidación Venta -->
+              <div class="flex justify-between items-center py-1 border-b border-emerald-100 font-bold text-slate-900 bg-white p-2 rounded-lg border border-emerald-200">
+                <span>(=) IVA Total Liquidación Venta:</span>
+                <span class="font-mono text-emerald-700" id="liq-vta-val-iva-total">$ 5.610.002,14</span>
+              </div>
+
+              <!-- Control y Entrega -->
+              <div class="flex justify-between items-center py-1 border-b border-emerald-100">
+                <span class="font-bold text-slate-700">(+) Control y Entrega:</span>
+                <input type="number" id="liq-vta-input-control" oninput="recalcularLiquidacionDesdeInputs()" step="1" value="0" class="w-24 text-right font-mono border border-slate-300 rounded px-2 py-0.5 bg-white text-xs">
+              </div>
+
+              <!-- Flete Frigorífico -->
+              <div class="flex justify-between items-center py-1 border-b border-emerald-100">
+                <span class="font-bold text-slate-700">(+) Flete Frigorífico:</span>
+                <input type="number" id="liq-vta-input-flete" oninput="recalcularLiquidacionDesdeInputs()" step="1" value="0" class="w-24 text-right font-mono border border-slate-300 rounded px-2 py-0.5 bg-white text-xs">
+              </div>
+
+              <!-- Ficha de Romaneo y Rendimiento -->
+              <div class="bg-white p-2.5 rounded-xl border border-slate-200 text-[11px] grid grid-cols-5 gap-2 text-center">
+                <div>
+                  <span class="text-slate-400 block font-semibold">Cabezas</span>
+                  <strong class="text-slate-900" id="liq-rom-cabezas">26</strong>
+                </div>
+                <div>
+                  <span class="text-slate-400 block font-semibold">Kg Pesada</span>
+                  <strong class="text-slate-900" id="liq-rom-kilos">7.670</strong>
+                </div>
+                <div>
+                  <span class="text-slate-400 block font-semibold">Desbaste</span>
+                  <strong class="text-slate-900" id="liq-rom-desbaste">0%</strong>
+                </div>
+                <div>
+                  <span class="text-slate-400 block font-semibold">Kg Carne</span>
+                  <strong class="text-slate-900 font-mono" id="liq-rom-carne">4.487</strong>
+                </div>
+                <div>
+                  <span class="text-slate-400 block font-semibold">Rendimiento</span>
+                  <strong class="text-emerald-700" id="liq-rom-rinde">58.5%</strong>
+                </div>
+              </div>
+
+              <!-- TOTAL FACTURADO VENTA -->
+              <div class="flex justify-between items-center p-2.5 rounded-xl bg-emerald-700 text-white font-black text-sm shadow-sm">
+                <span>TOTAL A COBRAR FRIGORÍFICO:</span>
+                <span class="font-mono text-base text-yellow-200" id="liq-vta-val-total">$ 59.038.598,14</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- CARD DE AUDITORÍA Y CONCILIACIÓN ("AJUSTE A 0")         -->
+      <!-- ======================================================== -->
+      <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-5 shadow-lg border border-indigo-800 space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="text-2xl">⚖️</span>
+              <h3 class="font-extrabold text-base tracking-tight text-white">Auditoría Contable y Conciliación ("Ajuste a Cero")</h3>
+            </div>
+            <p class="text-xs text-slate-300">
+              Fórmula de verificación: <span class="font-mono text-emerald-300 font-bold">Total Venta ($ 59.038.598,14)</span> - <span class="font-mono text-amber-300 font-bold">Total Compra ($ 57.973.993,70)</span> = <span class="font-mono text-rose-300 font-black">Utilidad Neta ($ 1.064.604,44)</span>
+            </p>
+          </div>
+          
+          <div class="flex items-center gap-3">
+            <div class="text-right">
+              <span class="text-[11px] text-slate-400 block font-semibold">Diferencia Residual:</span>
+              <span class="font-mono font-black text-lg text-emerald-400" id="liq-audit-diferencia">$ 0,00</span>
+            </div>
+            <div class="bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1.5">
+              <span>✅</span> CUADRE PERFECTO
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- PESTAÑAS SECUNDARIAS: CHEQUES DIGITALES Y REGLAS         -->
+      <!-- ======================================================== -->
+      <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+        <!-- Navegación de Pestañas Inferiores -->
+        <div class="bg-slate-100 p-2 flex gap-1 border-b border-slate-200">
+          <button id="liq-tab-btn-echeqs" onclick="cambiarSubTabLiquidacion('echeqs')" class="px-4 py-2 text-xs font-bold rounded-xl bg-white text-slate-900 shadow-sm border border-slate-200 flex items-center gap-1.5">
+            <span>💳</span> Cheques Digitales (E-Cheqs) & Financiación
+          </button>
+          <button id="liq-tab-btn-reglas" onclick="cambiarSubTabLiquidacion('reglas')" class="px-4 py-2 text-xs font-bold rounded-xl text-slate-600 hover:bg-slate-200 flex items-center gap-1.5">
+            <span>📖</span> Reglas de Facturación por Frigorífico
+          </button>
+          <button id="liq-tab-btn-senasa" onclick="cambiarSubTabLiquidacion('senasa')" class="px-4 py-2 text-xs font-bold rounded-xl text-slate-600 hover:bg-slate-200 flex items-center gap-1.5">
+            <span>🐂</span> Rangos de Peso SENASA
+          </button>
+        </div>
+
+        <div class="p-5">
+          <!-- SUB-PESTAÑA 1: CHEQUES DIGITALES (E-CHEQS) -->
+          <div id="liq-subtab-echeqs" class="space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h4 class="font-black text-sm text-slate-900">Valores Recibidos del Frigorífico (E-Cheqs)</h4>
+                <p class="text-xs text-slate-500">Planilla de cheques digitales recibidos para cancelar la liquidación de venta</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="agregarFilaECheq()" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1">
+                  <span>➕</span> Agregar Cheque
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabla de E-Cheqs -->
+            <div class="border border-slate-200 rounded-xl overflow-hidden">
+              <table class="w-full text-xs">
+                <thead class="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold">
+                  <tr>
+                    <th class="p-2.5 text-center w-12">N°</th>
+                    <th class="p-2.5 text-left">Identificador / Cheque</th>
+                    <th class="p-2.5 text-right">Importe</th>
+                    <th class="p-2.5 text-center">Vencimiento</th>
+                    <th class="p-2.5 text-center">Plazo Días</th>
+                    <th class="p-2.5 text-left">Emisor</th>
+                    <th class="p-2.5 text-center">Estado</th>
+                    <th class="p-2.5 text-center w-10"></th>
+                  </tr>
+                </thead>
+                <tbody id="liq-tabla-echeqs-cuerpo">
+                  <!-- Render dinámico de cheques -->
+                </tbody>
+                <tfoot class="bg-slate-50 font-black border-t border-slate-200 text-slate-900">
+                  <tr>
+                    <td colspan="2" class="p-2.5 text-right font-bold">TOTAL CHEQUES:</td>
+                    <td class="p-2.5 text-right font-mono font-black text-emerald-700" id="liq-echeqs-tot-monto">$ 59.038.593,94</td>
+                    <td colspan="5" class="p-2.5 text-slate-500 font-normal">
+                      <span id="liq-echeqs-coincidencia" class="text-emerald-700 font-bold">✓ Coincide con Total Facturado al Frigorífico ($59.038.598,14)</span>
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <!-- Calculadora de Financiación por Desfasaje de Días -->
+            <div class="bg-indigo-50/60 border border-indigo-200 rounded-xl p-4 space-y-3">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h5 class="text-xs font-black text-indigo-950 flex items-center gap-1.5">
+                    <span>⏱️</span> Desfasaje Financiero & Tasa de Interés Diaria
+                  </h5>
+                  <p class="text-[11px] text-indigo-700">Calcula el costo financiero o adelanto por días de diferencia entre cobro al comprador y pago al vendedor</p>
+                </div>
+                <div class="flex items-center gap-2 text-xs">
+                  <span class="font-bold text-slate-700">Tasa Diaria:</span>
+                  <input type="number" id="liq-input-tasa-diaria" step="0.001" value="0.170" oninput="calcularFinanciacionLiquidacion()" class="w-18 text-center font-bold font-mono border border-slate-300 rounded px-2 py-0.5 bg-white text-xs">
+                  <span class="font-bold text-slate-700">% / día</span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs bg-white p-3 rounded-lg border border-indigo-100">
+                <div>
+                  <span class="text-slate-400 block font-semibold">Días Desfasaje:</span>
+                  <input type="number" id="liq-fin-dias" value="2" oninput="calcularFinanciacionLiquidacion()" class="w-full font-bold font-mono border border-slate-300 rounded px-2 py-1 mt-0.5">
+                </div>
+                <div>
+                  <span class="text-slate-400 block font-semibold">Monto Financiado:</span>
+                  <input type="number" id="liq-fin-monto" value="51052590" oninput="calcularFinanciacionLiquidacion()" class="w-full font-bold font-mono border border-slate-300 rounded px-2 py-1 mt-0.5">
+                </div>
+                <div>
+                  <span class="text-slate-400 block font-semibold">Tasa Total Aplicada:</span>
+                  <span class="font-mono font-bold text-indigo-800 text-sm block mt-1" id="liq-fin-tasa-total">0,34 %</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block font-semibold">Interés Calculado:</span>
+                  <span class="font-mono font-black text-rose-700 text-sm block mt-1" id="liq-fin-interes-monto">$ 173.578,81</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-PESTAÑA 2: REGLAS DE FACTURACIÓN POR FRIGORÍFICO -->
+          <div id="liq-subtab-reglas" class="hidden space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h4 class="font-black text-sm text-slate-900">Guía de Facturación y Comisiones por Frigorífico</h4>
+                <p class="text-xs text-slate-500">Parámetros oficiales autorizados para Swift, Quickfood, Coto, Bernal, Rioplatense, Gorina y más</p>
+              </div>
+              <div class="relative w-64">
+                <span class="absolute left-3 top-2 text-slate-400 text-xs">🔍</span>
+                <input type="text" id="filtro-reglas-frigorificos" oninput="filtrarReglasFrigorificos(this.value)" placeholder="Buscar frigorífico..." class="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              </div>
+            </div>
+
+            <div class="border border-slate-200 rounded-xl overflow-hidden">
+              <table class="w-full text-xs">
+                <thead class="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold">
+                  <tr>
+                    <th class="p-2.5 text-left">Frigorífico</th>
+                    <th class="p-2.5 text-center">Comisión %</th>
+                    <th class="p-2.5 text-center">IVA Com</th>
+                    <th class="p-2.5 text-center">Control / Entrega</th>
+                    <th class="p-2.5 text-center">Flete</th>
+                    <th class="p-2.5 text-left">Mails de Facturación</th>
+                    <th class="p-2.5 text-left">Notas Clave</th>
+                    <th class="p-2.5 text-center w-24">Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="liq-tabla-reglas-cuerpo">
+                  <!-- Filas de reglas renderizadas dinámicamente -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SUB-PESTAÑA 3: RANGOS DE PESO SENASA -->
+          <div id="liq-subtab-senasa" class="hidden space-y-4">
+            <div>
+              <h4 class="font-black text-sm text-slate-900">Categorías Oficiales SENASA por Peso de Faena</h4>
+              <p class="text-xs text-slate-500">Rango de kilos reglamentario para clasificación de tropa y romaneo</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs" id="liq-contenedor-senasa">
+              <!-- Render dinámico de categorías -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: VISTA PREVIA IDÉNTICA A EXCEL / IMPRESIÓN          -->
+  <!-- ======================================================== -->
+  <div id="modal-excel" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 md:p-6 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
+      
+      <!-- Barra superior modal -->
+      <div class="p-4 bg-slate-900 text-white flex items-center justify-between no-print">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">📑</span>
+          <span class="font-bold text-sm">Comprobante y Liquidación - Formato Consignataria</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1">
+            <span>🖨️</span> Imprimir / PDF
+          </button>
+          <button onclick="cerrarModalVistaPrevia()" class="p-1 rounded-lg text-slate-400 hover:text-white transition">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Solapas modal -->
+      <div class="bg-slate-100 p-2 flex gap-1 border-b border-slate-200 no-print">
+        <button id="modal-tab-btn-resumen" onclick="cambiarModalExcelTab('resumen')" class="px-4 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-900 shadow-sm border border-slate-200">
+          Hoja 1: RESUMEN
+        </button>
+        <button id="modal-tab-btn-venta" onclick="cambiarModalExcelTab('venta')" class="px-4 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:bg-slate-200">
+          Hoja 2: VENTA
+        </button>
+        <button id="modal-tab-btn-compra" onclick="cambiarModalExcelTab('compra')" class="px-4 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:bg-slate-200">
+          Hoja 3: COMPRA
+        </button>
+        <button id="modal-tab-btn-liquidacion" onclick="cambiarModalExcelTab('liquidacion')" class="px-4 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:bg-slate-200">
+          Hoja 4: LIQUIDACIÓN COMPRA / VENTA
+        </button>
+      </div>
+
+      <!-- Contenedor de Hojas imprimibles -->
+      <div class="p-6 overflow-y-auto flex-1 text-slate-800" id="contenedor-impresion">
+        
+        <!-- HOJA MODAL RESUMEN -->
+        <div id="modal-hoja-resumen" class="space-y-4">
+          <table class="w-full text-xs border border-slate-300 border-collapse">
+            <thead>
+              <tr class="bg-rose-50 text-rose-950 border border-slate-300">
+                <th colspan="2" class="p-2.5 text-left font-black text-base" id="print-empresa">FCO Agroganadera SRL</th>
+                <th class="p-2.5 text-right font-bold">Neg #: <span class="text-red-600 text-sm font-black" id="print-neg-id">3423</span></th>
+                <th class="p-2.5 bg-slate-100 text-center font-normal">Archivo cargado por:<br><strong id="print-operador">TOMI R.</strong></th>
+              </tr>
+              <tr class="border border-slate-300">
+                <td class="p-2 font-bold bg-slate-50 w-36">VENDEDOR:</td>
+                <td colspan="3" class="p-2 font-black text-slate-900" id="print-vendedor">LUCIANO CASADO</td>
+              </tr>
+              <tr class="border border-slate-300">
+                <td class="p-2 font-bold bg-slate-50">COMPRADOR:</td>
+                <td colspan="3" class="p-2 font-black text-slate-900" id="print-comprador">FIROKI SRL</td>
+              </tr>
+              <tr class="border border-slate-300">
+                <td class="p-2 font-bold bg-slate-50">A CARGO DE:</td>
+                <td colspan="3" class="p-2 font-black text-slate-900" id="print-acargo">ARIEL SAENZ Y CIA.</td>
+              </tr>
+              <tr class="border border-slate-300">
+                <td class="p-2 font-bold bg-slate-50">TIPO OPERACIÓN:</td>
+                <td colspan="3" class="p-2 font-black text-emerald-800 uppercase" id="print-tipo">INVERNADA</td>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="bg-slate-200 font-bold text-slate-800 border border-slate-300">
+                <td class="p-2 w-48">Concepto</td>
+                <td class="p-2 w-48 text-right font-mono">Importe</td>
+                <td colspan="2" class="p-2">Descripción</td>
+              </tr>
+              <tr class="border-b border-slate-200">
+                <td class="p-2">Dif. Comp-venta</td>
+                <td class="p-2 text-right font-mono" id="print-dif">$ 0,00</td>
+                <td colspan="2" class="p-2 text-slate-400"></td>
+              </tr>
+              <tr class="border-b border-slate-200">
+                <td class="p-2 font-bold">Comisión de C</td>
+                <td class="p-2 text-right font-mono font-bold" id="print-com-c">$ 6.268.003,20</td>
+                <td colspan="2" class="p-2 text-slate-700" id="print-desc-com-c">COM MAS IVA 2% FCO</td>
+              </tr>
+              <tr class="border-b border-slate-200">
+                <td class="p-2 font-bold">Comisión de V</td>
+                <td class="p-2 text-right font-mono font-bold" id="print-com-v">$ 2.350.501,20</td>
+                <td colspan="2" class="p-2 text-slate-700" id="print-desc-com-v">COM MAS IVA FCO 1,5%</td>
+              </tr>
+              <tr class="border-b border-slate-200">
+                <td class="p-2">Otro ingreso 1</td>
+                <td class="p-2 text-right font-mono" id="print-ing-otro1">$ 0,00</td>
+                <td colspan="2" class="p-2"></td>
+              </tr>
+              <tr class="border-b border-slate-200">
+                <td class="p-2">Otro ingreso 2</td>
+                <td class="p-2 text-right font-mono" id="print-ing-otro2">$ 0,00</td>
+                <td colspan="2" class="p-2"></td>
+              </tr>
+              <tr class="bg-rose-50 border-y-2 border-rose-300 font-black text-rose-950">
+                <td class="p-2 font-bold">Subtotal 1</td>
+                <td class="p-2 text-right font-mono font-black" id="print-subtotal1">$ 8.618.504,40</td>
+                <td colspan="2" class="p-2"></td>
+              </tr>
+              <tr class="border-b border-slate-200">
+                <td class="p-2 font-bold">Comisión costo 1</td>
+                <td class="p-2 text-right font-mono font-bold" id="print-costo-com1">$ 3.134.001,60</td>
+                <td colspan="2" class="p-2 text-slate-700" id="print-desc-costo1">COM LUCIANO CASADO 2%</td>
+              </tr>
+              <tr class="border-b border-slate-200">
+                <td class="p-2">Comisión costo 2</td>
+                <td class="p-2 text-right font-mono" id="print-costo-com2">$ 0,00</td>
+                <td colspan="2" class="p-2"></td>
+              </tr>
+              <tr class="border-b border-slate-200">
+                <td class="p-2">Otro costo 1</td>
+                <td class="p-2 text-right font-mono" id="print-costo-otro1">$ 0,00</td>
+                <td colspan="2" class="p-2"></td>
+              </tr>
+              <tr class="border-b border-slate-200">
+                <td class="p-2">Otro costo 2 / 3</td>
+                <td class="p-2 text-right font-mono" id="print-costo-otro2">$ 0,00</td>
+                <td colspan="2" class="p-2"></td>
+              </tr>
+              <tr class="bg-rose-50 border-y-2 border-rose-300 font-black text-rose-950">
+                <td class="p-2 font-bold">Subtotal 2</td>
+                <td class="p-2 text-right font-mono font-black" id="print-subtotal2">$ 3.134.001,60</td>
+                <td colspan="2" class="p-2"></td>
+              </tr>
+              <tr class="bg-emerald-100 border-2 border-emerald-400 font-black text-emerald-950 text-sm">
+                <td class="p-3">I.D - C.D.</td>
+                <td class="p-3 text-right font-mono font-black text-base" id="print-margen-neto">$ 5.484.502,80</td>
+                <td colspan="2" class="p-3 text-xs font-normal whitespace-pre-line" id="print-instrucciones">
+                  LIQUIDA A. SAENZ
+                  FCO FACTURA LAS COM A A. SAENZ
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- HOJA MODAL VENTA -->
+        <div id="modal-hoja-venta" class="hidden space-y-4">
+          <div class="border border-slate-300 rounded-lg p-3 bg-emerald-50/50 text-xs">
+            <div class="grid grid-cols-2 gap-4">
+              <div>Plazo 1: <strong id="print-vta-dias1">30</strong> días &rarr; Fecha Vto: <strong class="text-emerald-800" id="print-vta-vto1">-</strong></div>
+              <div>Plazo 2: <strong id="print-vta-dias2">60</strong> días &rarr; Fecha Vto: <strong class="text-emerald-800" id="print-vta-vto2">-</strong></div>
+            </div>
+          </div>
+          <table class="w-full text-xs border border-slate-300">
+            <thead class="bg-amber-300 font-bold text-center">
+              <tr><th colspan="4" class="p-2 text-slate-900">Venta de Hacienda</th></tr>
+              <tr class="bg-slate-100 border-t border-slate-300 text-slate-700">
+                <th class="p-2">Kilos</th>
+                <th class="p-2">Precio</th>
+                <th class="p-2">Total</th>
+                <th class="p-2 text-left">Detalle</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b border-slate-200">
+                <td class="p-2 text-center font-bold" id="print-vta-kilos">25.356</td>
+                <td class="p-2 text-center font-mono" id="print-vta-precio">$ 6.180,00</td>
+                <td class="p-2 text-center font-mono font-bold" id="print-vta-total">$ 156.700.080,00</td>
+                <td class="p-2 font-medium" id="print-vta-detalle">108 TERNEROS DE INVERNADA</td>
+              </tr>
+              <tr class="bg-slate-50 font-bold">
+                <td class="p-2 text-center" id="print-vta-totalkg">25.356</td>
+                <td></td>
+                <td class="p-2 text-center text-red-600 font-bold font-mono" id="print-vta-masiva">$ 156.700.080,00 más IVA</td>
+                <td></td>
+              </tr>
+              <tr class="border-t-2 border-slate-300">
+                <td colspan="2" class="p-2 text-right font-bold">Comisión FCO:</td>
+                <td class="p-2 text-center font-bold font-mono" id="print-vta-com-imp">$ 2.350.501,20</td>
+                <td class="p-2 text-slate-600 italic" id="print-vta-com-desc">COM MAS IVA FCO 1,5%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- HOJA MODAL COMPRA -->
+        <div id="modal-hoja-compra" class="hidden space-y-4">
+          <div class="border border-slate-300 rounded-lg p-3 bg-indigo-50/50 text-xs">
+            <div class="grid grid-cols-2 gap-4">
+              <div>Plazo 1: <strong id="print-cmp-dias1">35</strong> días &rarr; Fecha Vto: <strong class="text-indigo-800" id="print-cmp-vto1">-</strong></div>
+              <div>Plazo 2: <strong id="print-cmp-dias2">65</strong> días &rarr; Fecha Vto: <strong class="text-indigo-800" id="print-cmp-vto2">-</strong></div>
+            </div>
+          </div>
+          <table class="w-full text-xs border border-slate-300">
+            <thead class="bg-amber-300 font-bold text-center">
+              <tr><th colspan="4" class="p-2 text-slate-900">Compra de Hacienda</th></tr>
+              <tr class="bg-slate-100 border-t border-slate-300 text-slate-700">
+                <th class="p-2">Kilos</th>
+                <th class="p-2">Precio</th>
+                <th class="p-2">Total</th>
+                <th class="p-2 text-left">Detalle</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b border-slate-200">
+                <td class="p-2 text-center font-bold" id="print-cmp-kilos">25.356</td>
+                <td class="p-2 text-center font-mono" id="print-cmp-precio">$ 6.180,00</td>
+                <td class="p-2 text-center font-mono font-bold" id="print-cmp-total">$ 156.700.080,00</td>
+                <td class="p-2 font-medium" id="print-cmp-detalle">108 TERNEROS DE INVERNADA</td>
+              </tr>
+              <tr class="bg-slate-50 font-bold">
+                <td class="p-2 text-center" id="print-cmp-totalkg">25.356</td>
+                <td></td>
+                <td class="p-2 text-center text-red-600 font-bold font-mono" id="print-cmp-masiva">$ 156.700.080,00 más IVA</td>
+                <td></td>
+              </tr>
+              <tr class="border-t-2 border-slate-300">
+                <td colspan="2" class="p-2 text-right font-bold">Comisión Compra FCO:</td>
+                <td class="p-2 text-center font-bold font-mono" id="print-cmp-com-imp">$ 6.268.003,20</td>
+                <td class="p-2 text-slate-600 italic" id="print-cmp-com-desc">COM MAS IVA 2% FCO</td>
+              </tr>
+              <tr class="border-b border-slate-200">
+                <td colspan="2" class="p-2 text-right font-bold">Comisión Costo:</td>
+                <td class="p-2 text-center font-bold font-mono" id="print-cmp-costo-imp">$ 3.134.001,60</td>
+                <td class="p-2 text-slate-600 italic" id="print-cmp-costo-desc">COM LUCIANO CASADO 2%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- HOJA MODAL LIQUIDACIÓN COMPRA / VENTA -->
+        <div id="modal-hoja-liquidacion" class="hidden space-y-4">
+          <div class="border border-slate-300 p-4 rounded-xl bg-white text-xs space-y-3">
+            <div class="flex justify-between items-start border-b-2 border-slate-900 pb-2">
+              <div>
+                <h3 class="font-black text-base text-slate-900" id="print-liq-empresa">FCO AGROGANADERA SRL</h3>
+                <p class="text-[11px] text-slate-600">Liquidación y Conciliación Simultánea de Compra y Venta de Hacienda</p>
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-bold">Negocio: <strong class="text-red-700 text-sm font-mono" id="print-liq-neg-id">#03428</strong></span>
+                <div class="text-[10px] text-slate-500">Fecha: <span id="print-liq-fecha">24/03/2026</span></div>
+              </div>
+            </div>
+
+            <!-- Datos Generales -->
+            <div class="grid grid-cols-2 gap-4 text-xs">
+              <div class="p-2.5 border border-slate-200 rounded-lg bg-emerald-50/50">
+                <div class="font-black text-emerald-950 mb-1">VENTA (FACTURACIÓN A FRIGORÍFICO)</div>
+                <div>Comprador: <strong id="print-liq-comprador">QUICKFOOD</strong></div>
+                <div>CUIT: <span id="print-liq-comprador-cuit" class="font-mono">30-50413188-9</span></div>
+                <div>Total Facturado: <strong class="font-mono text-emerald-800 font-black" id="print-liq-vta-tot">$ 59.038.598,14</strong></div>
+              </div>
+              <div class="p-2.5 border border-slate-200 rounded-lg bg-indigo-50/50">
+                <div class="font-black text-indigo-950 mb-1">COMPRA (LIQUIDACIÓN A PRODUCTOR)</div>
+                <div>Vendedor: <strong id="print-liq-vendedor">EL DESPERTAR SA</strong></div>
+                <div>CUIT: <span id="print-liq-vendedor-cuit" class="font-mono">30-70701728-3</span></div>
+                <div>Total Liquidado: <strong class="font-mono text-indigo-800 font-black" id="print-liq-cmp-tot">$ 57.973.993,70</strong></div>
+              </div>
+            </div>
+
+            <!-- Tabla Resumen Comparativo de Liquidación -->
+            <table class="w-full text-xs border border-slate-300">
+              <thead class="bg-slate-200 font-bold text-slate-800">
+                <tr>
+                  <th class="p-2 text-left">Concepto</th>
+                  <th class="p-2 text-right">Compra (Productor)</th>
+                  <th class="p-2 text-right">Venta (Frigorífico)</th>
+                  <th class="p-2 text-right">Diferencia / Margen</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                <tr>
+                  <td class="p-2 font-semibold">Hacienda Bruta</td>
+                  <td class="p-2 text-right font-mono" id="print-liq-cmp-bruto">$ 52.899.600,00</td>
+                  <td class="p-2 text-right font-mono" id="print-liq-vta-bruto">$ 52.899.600,00</td>
+                  <td class="p-2 text-right font-mono text-slate-500">$ 0,00</td>
+                </tr>
+                <tr>
+                  <td class="p-2 font-semibold">Comisiones FCO</td>
+                  <td class="p-2 text-right font-mono text-red-600" id="print-liq-cmp-com">- $ 793.494,00 (1.5%)</td>
+                  <td class="p-2 text-right font-mono text-emerald-700" id="print-liq-vta-com">+ $ 528.996,00 (1.0%)</td>
+                  <td class="p-2 text-right font-mono font-bold text-emerald-700" id="print-liq-dif-com">$ 1.322.490,00</td>
+                </tr>
+                <tr>
+                  <td class="p-2 font-semibold">IVA Liquidación</td>
+                  <td class="p-2 text-right font-mono" id="print-liq-cmp-iva">$ 5.471.140,70</td>
+                  <td class="p-2 text-right font-mono" id="print-liq-vta-iva">$ 5.610.002,14</td>
+                  <td class="p-2 text-right font-mono text-slate-700" id="print-liq-dif-iva">$ 138.861,44</td>
+                </tr>
+                <tr>
+                  <td class="p-2 font-semibold">Retención Ganancias RG 830</td>
+                  <td class="p-2 text-right font-mono text-purple-700" id="print-liq-cmp-ret">$ 1.053.511,92</td>
+                  <td class="p-2 text-right font-mono">-</td>
+                  <td class="p-2 text-right font-mono text-purple-700">-</td>
+                </tr>
+                <tr>
+                  <td class="p-2 font-semibold">Comisión Terceros / Colaborador</td>
+                  <td class="p-2 text-right font-mono text-red-600" id="print-liq-cmp-terc">$ 396.747,00</td>
+                  <td class="p-2 text-right font-mono">-</td>
+                  <td class="p-2 text-right font-mono text-red-600">- $ 396.747,00</td>
+                </tr>
+                <tr class="bg-slate-100 font-bold text-sm">
+                  <td class="p-2">TOTALES</td>
+                  <td class="p-2 text-right font-mono text-slate-900" id="print-liq-cmp-totalfinal">$ 57.973.993,70</td>
+                  <td class="p-2 text-right font-mono text-slate-900" id="print-liq-vta-totalfinal">$ 59.038.598,14</td>
+                  <td class="p-2 text-right font-mono font-black text-rose-700" id="print-liq-utilidadfinal">$ 1.064.604,44</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Certificación de Cuadre -->
+            <div class="p-2.5 rounded-lg bg-emerald-50 border border-emerald-300 flex justify-between items-center text-xs font-bold text-emerald-900">
+              <span>ESTADO DE CONCILIACIÓN: AJUSTE A CERO VERIFICADO (CUADRE EXACTO)</span>
+              <span class="font-mono">UTILIDAD NETA: <span id="print-liq-utilidad-cert" class="text-emerald-800">$ 1.064.604,44</span></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  <!-- MODAL: VISOR DE DOCUMENTOS (DTE / ROMANEO) -->
+  <div id="modal-doc-viewer" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-3 md:p-6 no-print">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
+      <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl" id="doc-modal-icon">📄</span>
+          <div>
+            <h4 class="text-sm font-bold text-white" id="doc-modal-titulo">Visualizador de Documento</h4>
+            <span class="text-[11px] text-slate-400 font-mono" id="doc-modal-subtitulo">Archivo adjunto</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <a id="doc-modal-download" download="documento" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+            <span>⬇️</span> Descargar
+          </a>
+          <button onclick="cerrarVisorDocumento()" class="p-1.5 rounded-lg text-slate-400 hover:text-white transition">
+            ✕
+          </button>
+        </div>
+      </div>
+      <div class="p-4 flex-1 overflow-auto bg-slate-100 flex items-center justify-center min-h-[420px]" id="doc-modal-content">
+        <!-- Contenido generado por JavaScript (img o iframe) -->
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICACIÓN -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform transition-all duration-300 translate-y-24 opacity-0 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-slate-700">
+    <span id="toast-icon">✅</span>
+    <span id="toast-msg">Mensaje</span>
+  </div>
+
+  <!-- Scripts -->
+  <script src="data-seed.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

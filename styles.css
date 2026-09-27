@@ -1,0 +1,71 @@
+/* Estilos específicos para AgroGestión Consignataria */
+
+/* Ocultar flechas de números en inputs */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* Transiciones suaves */
+.nav-item {
+  color: #94a3b8;
+}
+.nav-item:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+.nav-item.active {
+  color: #ffffff;
+  background-color: #059669; /* Emerald 600 */
+}
+
+/* Efectos al pasar el mouse por filas de la tabla */
+tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+/* Reglas de Impresión Profesionales */
+@media print {
+  /* Ocultar barra superior, botones, modales y navegación */
+  header,
+  .no-print,
+  #modal-excel > div > div:first-child,
+  #modal-excel > div > div:nth-child(2) {
+    display: none !important;
+  }
+
+  body {
+    background-color: white !important;
+    color: black !important;
+    padding: 0 !important;
+  }
+
+  #modal-excel {
+    position: static !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    display: block !important;
+    padding: 0 !important;
+  }
+
+  #modal-excel > div {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  #contenedor-impresion {
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Mostrar todas las hojas en impresión continua o la seleccionada */
+  table {
+    page-break-inside: avoid;
+  }
+}
