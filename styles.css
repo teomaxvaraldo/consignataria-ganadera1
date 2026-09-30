@@ -1,71 +1,2250 @@
-/* Estilos específicos para AgroGestión Consignataria */
+/* ============================================================
+   CAMPOGEST — SISTEMA INTEGRAL DE GESTIÓN GANADERA
+   Identidad Visual Oficial Basada en el Isologo de Marca
+   Paleta: Pino Profundo, Oliva Agro, Brillo de Pastura y Arena Cálida
+   ============================================================ */
 
-/* Ocultar flechas de números en inputs */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-input[type=number] {
-  -moz-appearance: textfield;
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+/* -- Tokens de Color Propietarios CAMPOGEST -- */
+:root {
+  /* Fondo y Superficies inspirados en el horizonte cálido del logo */
+  --bg-base:        #F5F7F1;
+  --bg-surface:     #EBF0E5;
+  --bg-card:        #FFFFFF;
+  
+  /* Tonos Oscuros / Obsidiana Pino (Sombras y textos ejecutivos) */
+  --obsidian-950:   #0C1510;
+  --obsidian-900:   #121F17;
+  --obsidian-850:   #16281E; /* Color exacto "CAMPO" en el logo */
+  --obsidian-800:   #1A2E23;
+  --obsidian-700:   #233B2D;
+  --obsidian-600:   #344F3F;
+  --obsidian-400:   #546F5F;
+  --obsidian-200:   #8EA597;
+  --obsidian-100:   #CFD9D2;
+  
+  /* Verdes Pino Profundo (Silueta bovina y cuerpo de la 'C') */
+  --pine-950:       #0A1710;
+  --pine-900:       #13281D;
+  --pine-800:       #193526;
+  --pine-700:       #214532;
+  --pine-600:       #2E5A42;
+  
+  /* Verdes Oliva y Pastura Agro (Color exacto "GEST" y surcos del campo) */
+  --olive-800:      #455C2B;
+  --olive-700:      #526C33;
+  --olive-600:      #607E3C; /* Verde "GEST" */
+  --olive-500:      #6E8F45;
+  --olive-400:      #82A753; /* Resalte de surco */
+  --olive-300:      #9BC267;
+  --olive-200:      #BEDAA0;
+  --olive-100:      #DFECCF;
+  --olive-50:       #F0F6E9;
+
+  /* Aliases de compatibilidad con el sistema anterior */
+  --forest-950:     var(--pine-950);
+  --forest-900:     var(--pine-900);
+  --forest-800:     var(--pine-800);
+  --forest-700:     var(--olive-700);
+  --forest-600:     var(--olive-600);
+  --forest-400:     var(--olive-400);
+  --forest-100:     var(--olive-100);
+  --forest-50:      var(--olive-50);
+  
+  /* Acentos de Alerta / Invernada Cuero / Coñac */
+  --cognac-900:     #78350F;
+  --cognac-700:     #9A3412;
+  --cognac-600:     #C2410C;
+  --cognac-500:     #EA580C;
+  --cognac-100:     #FEF3C7;
+  --cognac-50:      #FFFBEB;
+  
+  /* Bordes de precisión de campo */
+  --border-hairline: 1px solid #DCE4D6;
+  --border-medium:   1px solid #C4D2BD;
+  
+  /* Sombras y profundidad */
+  --shadow-card:    0 1px 3px rgba(12,21,16,0.06), 0 1px 2px rgba(12,21,16,0.04);
+  --shadow-card-md: 0 4px 12px rgba(12,21,16,0.08), 0 2px 4px rgba(12,21,16,0.05);
+  --shadow-card-lg: 0 12px 32px rgba(12,21,16,0.12), 0 4px 8px rgba(12,21,16,0.06);
+  
+  --font-ui:   'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --tracking-exec:  -0.015em;
+  --tracking-wide:  0.08em;
+  --tracking-xwide: 0.12em;
 }
 
-/* Transiciones suaves */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-ui);
+  letter-spacing: var(--tracking-exec);
+  background-color: var(--bg-base);
+  color: var(--obsidian-950);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-mono,
+[id*="kpi-"],[id*="liq-kpi-"],[id*="lbl-"],[id*="print-"],[id*="liq-"],
+input[type="number"], td { font-variant-numeric: tabular-nums; }
+
+/* CABECERA OFICIAL CAMPOGEST */
+header {
+  background-color: var(--pine-900) !important;
+  border-bottom: 1px solid rgba(130, 167, 83, 0.28) !important;
+  height: 68px !important;
+  min-height: 68px !important;
+}
+
+.campogest-header-logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.15s ease;
+}
+.campogest-header-logo-wrap:hover {
+  opacity: 0.92;
+}
+
+.campogest-header-logo-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid rgba(130, 167, 83, 0.4);
+  background: #14281D;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
+.fco-monogram {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  border: 1.5px solid var(--olive-500);
+  border-radius: 8px;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 800;
+  letter-spacing: 0.06em; color: var(--olive-300);
+  background: rgba(96, 126, 60, 0.15);
+  flex-shrink: 0; user-select: none;
+}
+
+.header-brand-name { font-weight: 800; font-size: 15px; letter-spacing: -0.02em; color: #FFFFFF; white-space: nowrap; }
+.header-brand-sep  { color: var(--obsidian-400); font-size: 12px; margin: 0 6px; }
+.header-brand-sub  { font-size: 12px; font-weight: 500; color: var(--obsidian-200); }
+
+.status-pulse {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 9px;
+  background: rgba(96, 126, 60, 0.18);
+  border: 1px solid rgba(130, 167, 83, 0.35);
+  border-radius: 20px; font-size: 10px; font-weight: 700;
+  color: var(--olive-300);
+}
+.status-pulse-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--olive-400);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+  0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(130,167,83,.6); }
+  50%     { opacity:.7; box-shadow:0 0 0 4px rgba(130,167,83,0); }
+}
+
+/* NAVEGACION */
+nav.nav-container {
+  display:flex; align-items:center; gap:2px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--obsidian-700);
+  border-radius: 10px; padding: 3px;
+}
 .nav-item {
-  color: #94a3b8;
+  position: relative;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 13px; border-radius: 7px;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.005em;
+  color: var(--obsidian-200);
+  transition: color 0.15s ease, background 0.15s ease;
+  white-space: nowrap; border: none; background: transparent; cursor: pointer;
 }
-.nav-item:hover {
-  color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.05);
-}
+.nav-item:hover { color: #FFFFFF; background: rgba(255,255,255,0.07); }
 .nav-item.active {
-  color: #ffffff;
-  background-color: #059669; /* Emerald 600 */
+  color: #FFFFFF; background: var(--pine-800);
+  box-shadow: 0 1px 4px rgba(10,23,16,.6), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.nav-item.active::after {
+  content:''; position:absolute; bottom:3px; left:50%;
+  transform:translateX(-50%); width:16px; height:2px;
+  background: var(--olive-400); border-radius:2px;
+  box-shadow: 0 0 6px var(--olive-400);
+}
+.nav-icon { width:14px; height:14px; opacity:.75; flex-shrink:0; }
+.nav-item.active .nav-icon { opacity:1; }
+
+/* BOTON PRIMARIO CAMPOGEST (Verde Oliva Oficial) */
+.btn-primary-action {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:7px 14px;
+  background: linear-gradient(135deg, var(--olive-600) 0%, var(--olive-700) 100%);
+  color:#FFFFFF;
+  font-family: var(--font-ui); font-size:12px; font-weight:700;
+  letter-spacing:0.01em; border-radius:8px; border:none; cursor:pointer;
+  transition: background .15s, box-shadow .15s, transform .1s;
+  box-shadow: 0 1px 3px rgba(12,21,16,.3), 0 2px 6px rgba(82,108,51,.25);
+}
+.btn-primary-action:hover {
+  background: linear-gradient(135deg, var(--olive-500) 0%, var(--olive-600) 100%);
+  box-shadow: 0 3px 10px rgba(82,108,51,.4);
+  transform: translateY(-1px);
+}
+.btn-primary-action:active { transform: translateY(0); }
+
+/* KPI CARDS */
+.kpi-card {
+  background: var(--bg-card);
+  border: var(--border-hairline);
+  border-radius: 14px; padding: 20px 22px;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow .2s ease, transform .2s ease;
+  position: relative; overflow: hidden;
+}
+.kpi-card:hover { box-shadow: var(--shadow-card-md); transform: translateY(-1px); }
+.kpi-card::before {
+  content:''; position:absolute; top:0; right:0; width:80px; height:80px;
+  background: radial-gradient(circle at 100% 0%, rgba(5,150,105,.04) 0%, transparent 70%);
+  pointer-events:none;
+}
+.kpi-card-label {
+  font-size:10px; font-weight:700; text-transform:uppercase;
+  letter-spacing: var(--tracking-xwide); color:#6B7A99;
+  margin-bottom:8px; display:flex; align-items:center; justify-content:space-between;
+}
+.kpi-card-value {
+  font-family: var(--font-mono); font-size:22px; font-weight:700;
+  letter-spacing:-0.025em; color:var(--obsidian-950);
+  line-height:1.1; font-variant-numeric:tabular-nums;
+}
+.kpi-card-sub { font-size:11px; color:#8B96B3; margin-top:6px; font-weight:500; }
+.badge-pill {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:2px 8px; border-radius:20px; font-size:10px; font-weight:700;
+}
+.badge-dot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+.kpi-card--accent {
+  border-left: 3px solid var(--forest-600);
+  background: linear-gradient(to right, rgba(5,150,105,.03), var(--bg-card));
+}
+.kpi-card--accent .kpi-card-value { color: var(--forest-900); }
+.kpi-card--accent .kpi-card-sub   { color: var(--forest-700); font-weight:700; }
+
+/* FILTER BAR */
+.filter-bar {
+  background: var(--bg-card); border: var(--border-hairline);
+  border-radius:14px; padding:14px 18px; box-shadow: var(--shadow-card);
+  display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+}
+.search-input {
+  width:100%; padding:8px 12px 8px 38px;
+  font-family:var(--font-ui); font-size:12.5px; font-weight:500;
+  border: var(--border-hairline); border-radius:8px;
+  color:var(--obsidian-950); background:var(--bg-surface);
+  transition: border-color .15s, box-shadow .15s; outline:none;
+}
+.search-input:focus {
+  border-color:var(--forest-600);
+  box-shadow:0 0 0 3px rgba(5,150,105,.12);
+  background:var(--bg-card);
+}
+.select-control {
+  padding:7px 28px 7px 12px;
+  font-family:var(--font-ui); font-size:12px; font-weight:600;
+  border:var(--border-hairline); border-radius:8px;
+  background:var(--bg-card); color:var(--obsidian-950);
+  outline:none; cursor:pointer;
+  -webkit-appearance:none; appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B7A99' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 10px center;
+}
+.select-control:focus { border-color:var(--forest-600); }
+
+/* GHOST BUTTONS */
+.btn-ghost {
+  display:inline-flex; align-items:center; justify-content:center; gap:4px;
+  padding:5px 9px; border-radius:6px; font-size:11px; font-weight:600;
+  color:#8B96B3; background:transparent; border:1px solid transparent;
+  cursor:pointer; transition: color .15s, background .15s, border-color .15s;
+  white-space:nowrap;
+}
+.btn-ghost:hover { color:var(--obsidian-950); background:var(--bg-surface); border-color:var(--border-hairline); }
+.btn-ghost--green:hover  { color:var(--forest-800); background:var(--forest-50); border-color:var(--forest-100); }
+.btn-ghost--blue:hover   { color:#1d4ed8; background:#eff6ff; border-color:#bfdbfe; }
+.btn-ghost--red:hover    { color:#b91c1c; background:#fef2f2; border-color:#fecaca; }
+.btn-ghost--cognac:hover { color:var(--cognac-700); background:var(--cognac-50); border-color:var(--cognac-100); }
+
+/* DATA TABLE */
+.data-table-wrapper {
+  background:var(--bg-card); border:var(--border-hairline);
+  border-radius:14px; box-shadow:var(--shadow-card); overflow:hidden;
+}
+.data-table { width:100%; border-collapse:collapse; text-align:left; font-size:12px; }
+.data-table thead { background:#F7F8FC; border-bottom:var(--border-hairline); }
+.data-table thead th {
+  padding:12px 16px; font-size:10.5px; font-weight:700;
+  text-transform:uppercase; letter-spacing:var(--tracking-xwide);
+  color:#6B7A99; white-space:nowrap;
+}
+.data-table tbody tr { border-bottom:1px solid #EEF2F6; transition:background .12s ease; }
+.data-table tbody tr:last-child { border-bottom:none; }
+.data-table tbody tr:hover { background:#F7F9FD; }
+.data-table tbody td { padding:12px 16px; color:var(--obsidian-950); font-weight:500; }
+
+/* STATUS BADGES */
+.status-badge {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:3px 8px; border-radius:20px; font-size:10px; font-weight:700;
+  letter-spacing:0.02em; text-transform:uppercase;
+}
+.status-badge--pending  { background:#FFF3DC; color:#92400E; border:1px solid #FDE68A; }
+.status-badge--invoiced { background:#EFF6FF; color:#1E40AF; border:1px solid #BFDBFE; }
+.status-badge--paid     { background:var(--forest-50); color:var(--forest-800); border:1px solid var(--forest-100); }
+
+.tipo-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:3px 9px; border-radius:4px; font-size:10.5px; font-weight:700;
+}
+.tipo-badge--invernada { background:var(--cognac-50); color:var(--cognac-700); border:1px solid var(--cognac-100); }
+.tipo-badge--faena     { background:#FDF4FF; color:#7E22CE; border:1px solid #E9D5FF; }
+.tipo-badge--cria      { background:var(--forest-50); color:var(--forest-800); border:1px solid var(--forest-100); }
+
+/* SECTION CARD */
+.section-card {
+  background:var(--bg-card); border:var(--border-hairline);
+  border-radius:14px; padding:22px; box-shadow:var(--shadow-card);
+}
+.section-card-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding-bottom:14px; margin-bottom:18px; border-bottom:1px solid #EEF2F6;
+}
+.section-card-title {
+  display:flex; align-items:center; gap:10px;
+  font-size:13px; font-weight:700; color:var(--obsidian-950);
+}
+.section-number {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:22px; height:22px; border-radius:5px;
+  font-size:10px; font-weight:800; font-family:var(--font-mono); flex-shrink:0;
 }
 
-/* Efectos al pasar el mouse por filas de la tabla */
-tbody tr {
-  transition: background-color 0.15s ease;
+/* FORM INPUTS */
+.form-input {
+  width:100%; padding:8px 12px;
+  font-family:var(--font-ui); font-size:13px; font-weight:500;
+  border:var(--border-hairline); border-radius:8px;
+  color:var(--obsidian-950); background:var(--bg-card);
+  transition: border-color .15s, box-shadow .15s; outline:none;
+}
+.form-input:focus { border-color:var(--forest-600); box-shadow:0 0 0 3px rgba(5,150,105,.10); }
+.form-input--mono { font-family:var(--font-mono); font-size:12px; font-variant-numeric:tabular-nums; }
+.form-input--id   { font-family:var(--font-mono); font-weight:800; color:var(--cognac-700); background:var(--bg-surface); }
+.form-label {
+  display:block; font-size:11px; font-weight:700; text-transform:uppercase;
+  letter-spacing:var(--tracking-wide); color:#6B7A99; margin-bottom:5px;
 }
 
-/* Reglas de Impresión Profesionales */
+/* DROPZONE */
+.dropzone-doc {
+  border:1.5px dashed #CDD4DC; border-radius:10px; padding:20px;
+  text-align:center; cursor:pointer;
+  transition: border-color .2s, background .2s;
+  background:var(--bg-surface);
+}
+.dropzone-doc:hover { border-color:var(--forest-600); background:var(--forest-50); }
+.dropzone-doc-icon  { width:32px; height:32px; margin:0 auto 8px; color:#A3AEBF; }
+.dropzone-doc-title { font-size:11.5px; font-weight:700; color:var(--obsidian-950); }
+.dropzone-doc-sub   { font-size:10px; color:#A3AEBF; margin-top:3px; font-weight:500; }
+
+/* PANEL OBSIDIAN */
+.panel-obsidian {
+  background:var(--obsidian-950); border:1px solid var(--obsidian-700);
+  border-radius:12px; padding:20px; color:#FFFFFF;
+}
+.panel-obsidian-label {
+  font-size:9.5px; font-weight:800; text-transform:uppercase;
+  letter-spacing:var(--tracking-xwide); color:var(--obsidian-200); margin-bottom:6px;
+}
+.panel-obsidian-value {
+  font-family:var(--font-mono); font-size:28px; font-weight:700;
+  color:var(--forest-400); letter-spacing:-0.03em; font-variant-numeric:tabular-nums;
+}
+
+/* AUDIT CARD */
+.audit-card {
+  background:linear-gradient(135deg, var(--obsidian-950) 0%, #0D1A35 50%, var(--obsidian-950) 100%);
+  border:1px solid var(--obsidian-700); border-radius:14px;
+  padding:22px; box-shadow:var(--shadow-card-lg); position:relative; overflow:hidden;
+}
+.audit-card::before {
+  content:''; position:absolute; top:-1px; left:0; right:0; height:1px;
+  background:linear-gradient(to right, transparent, var(--forest-600), transparent);
+}
+
+/* BTN SECONDARY */
+.btn-secondary {
+  display:inline-flex; align-items:center; gap:6px; padding:7px 14px;
+  border-radius:8px; font-family:var(--font-ui); font-size:12px; font-weight:700;
+  cursor:pointer; transition:all .15s; border:var(--border-hairline);
+}
+.btn-secondary--default { background:var(--bg-card); color:var(--obsidian-950); }
+.btn-secondary--default:hover { background:var(--bg-surface); }
+.btn-secondary--dark    { background:var(--obsidian-900); color:#FFFFFF; border-color:var(--obsidian-700); }
+.btn-secondary--dark:hover { background:var(--obsidian-800); }
+.btn-secondary--green   { background:var(--forest-600); color:#FFFFFF; border-color:var(--forest-700); }
+.btn-secondary--green:hover { background:var(--forest-700); }
+.btn-secondary--save    { background:#2563EB; color:#FFFFFF; border-color:#1D4ED8; }
+.btn-secondary--save:hover { background:#1D4ED8; }
+
+/* CUADRE BADGE */
+.cuadre-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 12px; background:rgba(5,150,105,.15);
+  border:1px solid rgba(52,211,153,.3); border-radius:8px;
+  font-size:10.5px; font-weight:800; text-transform:uppercase;
+  letter-spacing:var(--tracking-wide); color:var(--forest-400);
+}
+#liq-kpi-cuadre-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:4px 10px; background:var(--forest-50);
+  border:1px solid var(--forest-100); border-radius:6px;
+  font-size:10px; font-weight:800; text-transform:uppercase;
+  letter-spacing:0.04em; color:var(--forest-800);
+}
+
+/* TOAST */
+#toast {
+  font-family:var(--font-ui); font-size:12.5px; font-weight:600;
+  background:var(--obsidian-900); border:1px solid var(--obsidian-700);
+  border-radius:10px; box-shadow:var(--shadow-card-lg);
+}
+
+/* MODALS */
+#modal-cliente {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 1000 !important;
+}
+#modal-cliente.hidden {
+  display: none !important;
+}
+#modal-cliente:not(.hidden) {
+  display: flex !important;
+}
+.modal-overlay { backdrop-filter:blur(6px); background:rgba(9,13,22,.65); }
+.modal-surface { background:var(--bg-card); border:var(--border-hairline); border-radius:16px; box-shadow:var(--shadow-card-lg); overflow:hidden; }
+.modal-header {
+  background:var(--obsidian-950); border-bottom:1px solid var(--obsidian-700);
+  padding:14px 18px; display:flex; align-items:center; justify-content:space-between;
+}
+.modal-header-title { font-size:13px; font-weight:700; color:#FFFFFF; }
+.modal-tab-bar { background:#F7F8FC; border-bottom:var(--border-hairline); padding:8px 12px; display:flex; gap:4px; }
+.modal-tab {
+  padding:6px 14px; border-radius:7px; font-size:11.5px; font-weight:700;
+  color:#8B96B3; background:transparent; border:none; cursor:pointer; transition:all .15s;
+}
+.modal-tab.active { background:var(--bg-card); color:var(--obsidian-950); box-shadow:var(--shadow-card); border:var(--border-hairline); }
+.modal-tab:not(.active):hover { background:#EAECF4; color:var(--obsidian-950); }
+
+/* INPUTS NUMERICOS */
+input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+input[type=number] { -moz-appearance:textfield; }
+
+textarea.form-textarea {
+  font-family:var(--font-mono); font-size:11.5px; line-height:1.6;
+  background:var(--obsidian-900); border:1px solid var(--obsidian-700);
+  border-radius:8px; padding:10px 12px; color:var(--obsidian-100);
+  width:100%; resize:vertical; outline:none; transition:border-color .15s;
+}
+textarea.form-textarea:focus { border-color:var(--forest-600); }
+
+/* SISTEMA DE VISTAS Y NAVEGACION */
+.hidden {
+  display: none !important;
+}
+
+.seccion-vista {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.seccion-vista.hidden {
+  display: none !important;
+}
+
+@keyframes fadeInUp {
+  from { opacity:0; transform:translateY(8px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.seccion-vista:not(.hidden) { animation:fadeInUp .22s ease forwards; }
+
+.subtab-nav { background:#F7F8FC; padding:8px; display:flex; gap:4px; border-bottom:var(--border-hairline); }
+.subtab-btn { display:inline-flex; align-items:center; gap:5px; padding:7px 14px; border-radius:7px; font-size:11.5px; font-weight:700; cursor:pointer; border:none; transition:all .15s; }
+.subtab-btn--active   { background:var(--bg-card); color:var(--obsidian-950); box-shadow:var(--shadow-card); border:var(--border-hairline); }
+.subtab-btn--inactive { background:transparent; color:#8B96B3; }
+.subtab-btn--inactive:hover { background:#EAECF4; color:var(--obsidian-950); }
+
+.operator-label { font-size:9.5px; font-weight:600; color:var(--obsidian-400); text-transform:uppercase; letter-spacing:.06em; }
+.operator-name  { font-size:12.5px; font-weight:700; color:#FFFFFF; }
+
+.liq-panel-header-cmp { background:linear-gradient(135deg, var(--obsidian-900), var(--obsidian-950)); padding:16px; border-bottom:1px solid var(--obsidian-700); }
+.liq-panel-header-vta { background:linear-gradient(135deg, var(--forest-900), #022C1D); padding:16px; border-bottom:1px solid rgba(5,150,105,.3); }
+
+/* APARTADO L2 */
+.l2-card {
+  background: var(--bg-card);
+  border: var(--border-hairline);
+  border-left: 4px solid var(--forest-600);
+  border-radius: 14px;
+  padding: 18px 22px;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow .2s ease;
+}
+.l2-card:hover {
+  box-shadow: var(--shadow-card-md);
+}
+
+/* SECTION CARDS */
+.section-card {
+  background: var(--bg-card); border: var(--border-hairline);
+  border-radius: 14px; padding: 20px 22px;
+  box-shadow: var(--shadow-card);
+}
+.section-number {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:32px; height:32px; border-radius:8px;
+  font-family:var(--font-mono); font-size:14px; font-weight:700;
+  flex-shrink:0;
+}
+
+/* ==========================================
+   BIENVENIDA & ACCESO MULTI-EMPRESA PRESTIGE
+   Paleta Oficial CAMPOGEST (Pino Profundo & Oliva)
+   ========================================== */
+.welcome-hero {
+  background: linear-gradient(135deg, #09130D 0%, #112017 45%, #182E21 100%);
+  border: 1px solid #243D2D;
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 45px -15px rgba(9, 19, 13, 0.6);
+}
+
+.welcome-hero::before {
+  content: '';
+  position: absolute;
+  top: -120px;
+  right: -100px;
+  width: 440px;
+  height: 440px;
+  background: radial-gradient(circle, rgba(130, 167, 83, 0.22) 0%, rgba(130, 167, 83, 0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.welcome-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  background: rgba(130, 167, 83, 0.16);
+  border: 1px solid rgba(130, 167, 83, 0.4);
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #A6C978;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.welcome-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--olive-400);
+  box-shadow: 0 0 10px var(--olive-400);
+  animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.market-ticker {
+  background: rgba(12, 21, 15, 0.85);
+  border: 1px solid #203527;
+  border-radius: 14px;
+  backdrop-filter: blur(8px);
+}
+
+.ticker-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.company-portal-card {
+  background: #0C1711;
+  border: 1px solid #213829;
+  border-radius: 18px;
+  box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.65);
+  position: relative;
+  overflow: hidden;
+}
+
+.company-portal-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #193526, #607E3C, #82A753);
+}
+
+/* CAMPOGEST Auth Portal & Tabs */
+.auth-tabs-nav {
+  display: flex;
+  background: rgba(10, 18, 13, 0.85);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid #1E3425;
+  gap: 4px;
+}
+
+.auth-tab-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #92A69A;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.auth-tab-btn:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.auth-tab-btn.active {
+  color: #FFFFFF;
+  background: var(--olive-600);
+  box-shadow: 0 2px 8px rgba(96, 126, 60, 0.45);
+}
+
+.password-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-group input {
+  padding-right: 40px !important;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #8FA295;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s;
+}
+
+.password-toggle-btn:hover {
+  color: var(--olive-300);
+}
+
+.demo-account-chip {
+  padding: 7px 11px;
+  background: rgba(20, 36, 26, 0.7);
+  border: 1px solid #2B4533;
+  border-radius: 8px;
+  font-size: 10px;
+  color: #C8D7CE;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+}
+
+.demo-account-chip:hover {
+  background: rgba(130, 167, 83, 0.2);
+  border-color: var(--olive-400);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+.login-auth-error {
+  animation: shakeAuth 0.35s ease-in-out;
+}
+
+@keyframes shakeAuth {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+.company-select-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #1E3425;
+  border-radius: 12px;
+  background: rgba(12, 21, 15, 0.6);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.company-select-item:hover {
+  background: rgba(22, 38, 28, 0.8);
+  border-color: rgba(130, 167, 83, 0.45);
+  transform: translateY(-1px);
+}
+
+.company-select-item.selected {
+  background: rgba(96, 126, 60, 0.22);
+  border-color: var(--olive-400);
+  box-shadow: 0 0 0 1px var(--olive-400);
+}
+
+.company-monogram-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #13241B;
+  color: var(--olive-300);
+  font-weight: 800;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #233D2D;
+  flex-shrink: 0;
+}
+
+.company-select-item.selected .company-monogram-circle {
+  background: var(--pine-800);
+  color: #FFFFFF;
+  border-color: var(--olive-400);
+}
+
+.feature-prestige-card {
+  background: #FFFFFF;
+  border: 1px solid #DCE5D6;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 4px 16px -4px rgba(12, 21, 16, 0.06);
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.feature-prestige-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -6px rgba(12, 21, 16, 0.12);
+  border-color: var(--olive-300);
+}
+
+.feature-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+
+.step-prestige-card {
+  background: #F4F6F1;
+  border: 1px solid #DCE4D6;
+  border-radius: 14px;
+  padding: 18px;
+}
+
+/* Header Session Picker */
+.header-session-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.header-session-badge:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(130, 167, 83, 0.45);
+}
+
+/* ============================================================
+   SOBREESCRITURA DE CLASES TAILWIND PARA ARMONIZAR CON EL LOGO
+   Reemplaza los verdes genéricos por la paleta de oliva y pino
+   ============================================================ */
+.bg-emerald-600 {
+  background-color: var(--olive-600) !important;
+}
+.bg-emerald-600:hover,
+.hover\:bg-emerald-500:hover {
+  background-color: var(--olive-500) !important;
+}
+.bg-emerald-500 {
+  background-color: var(--olive-500) !important;
+}
+.bg-emerald-100 {
+  background-color: var(--olive-100) !important;
+  color: var(--olive-800) !important;
+}
+.bg-emerald-50 {
+  background-color: var(--olive-50) !important;
+}
+.text-emerald-400 {
+  color: var(--olive-300) !important;
+}
+.text-emerald-500 {
+  color: var(--olive-400) !important;
+}
+.text-emerald-600 {
+  color: var(--olive-700) !important;
+}
+.text-emerald-700,
+.text-emerald-800,
+.text-emerald-900,
+.text-emerald-950 {
+  color: var(--olive-800) !important;
+}
+.border-emerald-300,
+.border-emerald-400 {
+  border-color: var(--olive-200) !important;
+}
+.border-emerald-500\/40,
+.border-emerald-500\/30,
+.border-emerald-500\/20 {
+  border-color: rgba(130, 167, 83, 0.4) !important;
+}
+.bg-emerald-500\/10,
+.bg-emerald-500\/20 {
+  background-color: rgba(96, 126, 60, 0.16) !important;
+}
+.shadow-emerald-950,
+.shadow-emerald-950\/50 {
+  box-shadow: 0 12px 32px rgba(12, 21, 16, 0.5);
+}
+
+/* ============================================================
+   CARRUSEL DE LOTES GANADEROS & OVERLAY CENTRAL CAMPOGEST
+   ============================================================ */
+/* ============================================================
+   CARRUSEL DE LOTES GANADEROS CON MARCA OFICIAL CENTRAL CAMPOGEST
+   ============================================================ */
+.cattle-slider-container {
+  position: relative;
+  width: 100%;
+  height: 590px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px -10px rgba(8, 16, 12, 0.7);
+  border: 1.5px solid rgba(130, 167, 83, 0.38);
+  background: var(--obsidian-950);
+}
+
+@media (max-width: 980px) {
+  .cattle-slider-container {
+    height: 640px;
+  }
+}
+
+@media (max-width: 640px) {
+  .cattle-slider-container {
+    height: 670px;
+    border-radius: 18px;
+  }
+}
+
+/* Slides y fotos de hacienda */
+.cattle-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.85s cubic-bezier(0.4, 0, 0.2, 1), transform 6s ease-out;
+  transform: scale(1.05);
+}
+
+.cattle-slide.active {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+}
+
+.cattle-slide-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Scrim cinematográfico multinivel: oscuro arriba para el logo, claro al medio para ver las vacas, oscuro abajo para la ficha técnica */
+.cattle-slide-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, 
+    rgba(10, 20, 14, 0.78) 0%, 
+    rgba(10, 20, 14, 0.15) 28%, 
+    rgba(10, 20, 14, 0.25) 55%, 
+    rgba(8, 16, 11, 0.88) 82%, 
+    rgba(8, 16, 11, 0.98) 100%
+  );
+  pointer-events: none;
+}
+
+/* ============================================================
+   EMBLEMA Y LOGO OFICIAL CENTRAL ("en el medio")
+   ============================================================ */
+.slider-brand-center {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  pointer-events: auto;
+  text-align: center;
+}
+
+.slider-brand-crest {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 30px;
+  background: rgba(14, 28, 19, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(130, 167, 83, 0.45);
+  border-radius: 20px;
+  box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.7), 0 0 25px rgba(96, 126, 60, 0.25);
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.slider-brand-crest:hover {
+  transform: translateY(-2px);
+  border-color: var(--olive-300);
+  box-shadow: 0 20px 42px -6px rgba(0, 0, 0, 0.8), 0 0 30px rgba(96, 126, 60, 0.35);
+}
+
+.slider-brand-logo-img {
+  height: 68px;
+  width: auto;
+  max-width: 240px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.7));
+}
+
+.slider-brand-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #D6EAD4;
+}
+
+.slider-brand-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ADE80;
+  box-shadow: 0 0 8px #4ADE80;
+  animation: statusDotPulse 2s infinite;
+}
+
+@media (max-width: 640px) {
+  .slider-brand-center {
+    top: 12px;
+  }
+  .slider-brand-crest {
+    padding: 8px 18px;
+    border-radius: 16px;
+  }
+  .slider-brand-logo-img {
+    height: 52px;
+  }
+  .slider-brand-pill {
+    font-size: 9px;
+  }
+}
+
+/* ============================================================
+   FICHA TÉCNICA DEL LOTE GANADERO (EN CADA SLIDE)
+   ============================================================ */
+.slide-lot-card-wrapper {
+  position: absolute;
+  bottom: 74px;
+  left: 0;
+  right: 0;
+  padding: 0 28px;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+}
+
+.slide-lot-card {
+  width: 100%;
+  max-width: 1180px;
+  background: rgba(14, 27, 19, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(130, 167, 83, 0.42);
+  border-radius: 20px;
+  padding: 16px 22px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  animation: slideLotCardIn 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideLotCardIn {
+  from { opacity: 0; transform: translateY(18px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.slide-lot-main {
+  flex: 1;
+  min-width: 260px;
+}
+
+.slide-lot-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.lot-badge-cat {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2.5px 9px;
+  border-radius: 6px;
+  background: var(--olive-600);
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(82, 108, 51, 0.35);
+}
+
+.lot-badge-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2.5px 9px;
+  border-radius: 6px;
+  background: rgba(22, 101, 52, 0.4);
+  color: #86EFAC;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.slide-lot-title {
+  font-size: 19px;
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+
+.slide-lot-desc {
+  font-size: 12px;
+  color: #A9BFA8;
+  margin-top: 3px;
+  line-height: 1.35;
+}
+
+/* Grilla de Métricas Ganaderas */
+.slide-lot-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.lot-metric-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 8px 12px;
+  text-align: center;
+  min-width: 100px;
+}
+
+.lot-metric-label {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8CA888;
+  margin-bottom: 2px;
+}
+
+.lot-metric-val {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 800;
+  color: #FFFFFF;
+  white-space: nowrap;
+}
+
+.lot-metric-val small {
+  font-size: 10px;
+  font-weight: 600;
+  color: #A3BFA0;
+}
+
+/* Botones de acción del lote */
+.slide-lot-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-lot-primary {
+  padding: 9px 18px;
+  background: linear-gradient(135deg, var(--olive-600) 0%, var(--olive-700) 100%);
+  color: #FFFFFF;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 10px;
+  border: 1px solid rgba(130, 167, 83, 0.45);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(82, 108, 51, 0.35);
+  white-space: nowrap;
+}
+
+.btn-lot-primary:hover {
+  background: linear-gradient(135deg, var(--olive-500) 0%, var(--olive-600) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(82, 108, 51, 0.5);
+}
+
+.btn-lot-secondary {
+  padding: 7px 14px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #D6EAD4;
+  font-family: var(--font-ui);
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-lot-secondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #FFFFFF;
+}
+
+@media (max-width: 1080px) {
+  .slide-lot-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+  .slide-lot-metrics {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .slide-lot-actions {
+    flex-direction: row;
+  }
+  .slide-lot-actions button {
+    flex: 1;
+  }
+}
+
+@media (max-width: 680px) {
+  .slide-lot-card-wrapper {
+    padding: 0 14px;
+    bottom: 64px;
+  }
+  .slide-lot-card {
+    padding: 12px 14px;
+    border-radius: 16px;
+  }
+  .slide-lot-title {
+    font-size: 16px;
+  }
+  .slide-lot-desc {
+    font-size: 11px;
+  }
+  .slide-lot-metrics {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  .lot-metric-chip {
+    padding: 6px 8px;
+    min-width: unset;
+  }
+  .lot-metric-val {
+    font-size: 12px;
+  }
+}
+
+/* ============================================================
+   SELECTOR INFERIOR DE LOTES (Pills interactivas con cabezas y raza)
+   ============================================================ */
+.cattle-slider-selector-bar {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  z-index: 25;
+  padding: 0 16px;
+  overflow-x: auto;
+}
+
+.cattle-slider-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 12px;
+  background: rgba(10, 20, 14, 0.8);
+  border: 1px solid rgba(130, 167, 83, 0.3);
+  color: #C3D8C1;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  white-space: nowrap;
+}
+
+.cattle-slider-tab:hover {
+  background: rgba(28, 48, 35, 0.9);
+  color: #FFFFFF;
+  border-color: var(--olive-400);
+  transform: translateY(-1px);
+}
+
+.cattle-slider-tab.active {
+  background: linear-gradient(135deg, rgba(82, 108, 51, 0.95) 0%, rgba(55, 78, 32, 0.95) 100%);
+  color: #FFFFFF;
+  border-color: var(--olive-300);
+  box-shadow: 0 4px 16px rgba(82, 108, 51, 0.45);
+  transform: translateY(-1px);
+}
+
+.tab-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 2px 6px;
+  border-radius: 6px;
+  color: var(--olive-300);
+}
+
+.cattle-slider-tab.active .tab-badge {
+  background: #FFFFFF;
+  color: var(--forest-900);
+}
+
+.tab-text {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  line-height: 1.15;
+}
+
+.tab-title {
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.tab-sub {
+  font-size: 9.5px;
+  color: #9DBFA0;
+}
+
+.cattle-slider-tab.active .tab-sub {
+  color: #E2F3E0;
+}
+
+@media (max-width: 640px) {
+  .tab-sub {
+    display: none;
+  }
+  .cattle-slider-tab {
+    padding: 5px 10px;
+    font-size: 10px;
+  }
+}
+
+/* Flechas de navegación */
+.cattle-slider-arrow {
+  position: absolute;
+  top: 40%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(10, 20, 14, 0.72);
+  border: 1.5px solid rgba(130, 167, 83, 0.45);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 24;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.cattle-slider-arrow:hover {
+  background: var(--olive-600);
+  border-color: var(--olive-300);
+  box-shadow: 0 4px 18px rgba(82, 108, 51, 0.55);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.cattle-slider-arrow.prev { left: 16px; }
+.cattle-slider-arrow.next { right: 16px; }
+
+@media (max-width: 640px) {
+  .cattle-slider-arrow {
+    display: none;
+  }
+}
+
+/* ============================================================
+   SECCIÓN QUIÉNES SOMOS & PROPÓSITO GANADERO
+   ============================================================ */
+.about-section-container {
+  background: #FFFFFF;
+  border: 1px solid #DCE5D6;
+  border-radius: 24px;
+  padding: 40px 36px;
+  box-shadow: 0 8px 28px -4px rgba(12, 21, 16, 0.06);
+}
+
+@media (max-width: 768px) {
+  .about-section-container {
+    padding: 24px 20px;
+    border-radius: 18px;
+  }
+}
+
+.about-pillar-card {
+  background: #F8FAF6;
+  border: 1px solid #DCE5D6;
+  border-radius: 16px;
+  padding: 22px;
+  transition: all 0.25s ease;
+}
+.about-pillar-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--olive-400);
+  box-shadow: 0 10px 24px -4px rgba(12, 21, 16, 0.09);
+  background: #FFFFFF;
+}
+
+/* ============================================================
+   SECCIÓN DEDICADA: ACCESO COMPAÑÍA / INICIAR SESIÓN
+   ============================================================ */
+.portal-dedicated-wrapper {
+  max-width: 620px;
+  margin: 16px auto 32px;
+  width: 100%;
+}
+
+.business-subnav-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 1px solid #DCE5D6;
+  padding: 8px 12px;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(12, 21, 16, 0.04);
+  overflow-x: auto;
+}
+
+.business-subnav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #4A5D50;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.business-subnav-btn:hover {
+  background: #F0F5EC;
+  color: var(--pine-900);
+  border-color: #D3E0CD;
+}
+.business-subnav-btn.active {
+  background: var(--pine-900);
+  color: #FFFFFF;
+  border-color: var(--pine-900);
+  box-shadow: 0 2px 6px rgba(10, 23, 16, 0.25);
+}
+
+/* ============================================================
+   TOP CONTACT UTILITY BAR (Estilo Institucional Oficial)
+   ============================================================ */
+.top-contact-bar {
+  background-color: #0C1510;
+  border-bottom: 1px solid rgba(130, 167, 83, 0.18);
+  height: 38px;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: #CFD9D2;
+  z-index: 50;
+  position: relative;
+}
+.top-contact-inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 24px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.top-contact-left, .top-contact-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.top-contact-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #CFD9D2;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+.top-contact-item:hover {
+  color: #FFFFFF;
+}
+.top-contact-item svg {
+  width: 14px;
+  height: 14px;
+  opacity: 0.85;
+  color: var(--olive-400);
+}
+
+/* ============================================================
+   CABECERA INSTITUCIONAL CAMPOGEST (Estilo FCO con Verde Pino)
+   ============================================================ */
+.campogest-main-header {
+  background-color: var(--pine-900) !important;
+  border-bottom: 1px solid rgba(130, 167, 83, 0.25) !important;
+  height: 68px !important;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+.header-inner-container {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.brand-identity-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.brand-logo-round {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #14281D;
+  border: 1.5px solid rgba(130, 167, 83, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+}
+.brand-logo-round img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.brand-titles {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.brand-title-main {
+  font-family: 'Inter', var(--font-ui);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #FFFFFF;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+.brand-title-sub {
+  font-size: 11px;
+  font-weight: 500;
+  color: #CFD9D2;
+  letter-spacing: 0.03em;
+  margin-top: 2px;
+}
+
+/* NAVEGACIÓN ESTILO OFICIAL */
+.nav-links-official {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.nav-link-btn {
+  background: transparent;
+  border: none;
+  color: #EDE8DF;
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.nav-link-btn:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.08);
+}
+.nav-link-btn.active {
+  color: #FFFFFF;
+  background: rgba(130, 167, 83, 0.22);
+  border: 1px solid rgba(130, 167, 83, 0.35);
+}
+
+/* MENÚ DESPLEGABLE MESA OPERATIVA / SISTEMA */
+.dropdown-sistema-wrap {
+  position: relative;
+  display: inline-block;
+}
+.btn-sistema-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, var(--olive-600) 0%, var(--olive-700) 100%);
+  color: #FFFFFF;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 700;
+  border-radius: 8px;
+  border: 1px solid rgba(130, 167, 83, 0.5);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.btn-sistema-trigger:hover {
+  background: linear-gradient(135deg, var(--olive-500) 0%, var(--olive-600) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(82, 108, 51, 0.4);
+}
+.dropdown-sistema-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 250px;
+  background: #14281D;
+  border: 1px solid rgba(130, 167, 83, 0.35);
+  border-radius: 12px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+  padding: 6px;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 60;
+  backdrop-filter: blur(16px);
+}
+.dropdown-sistema-wrap:hover .dropdown-sistema-menu,
+.dropdown-sistema-menu.show {
+  display: flex;
+}
+.dropdown-sistema-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  color: #EDE8DF;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.dropdown-sistema-item:hover {
+  background: rgba(130, 167, 83, 0.22);
+  color: #FFFFFF;
+}
+
+/* ============================================================
+   HERO BANNER CINEMATOGRÁFICO (REPLICA EXACTA DEL SCREENSHOT)
+   ============================================================ */
+.hero-cinematic-banner {
+  position: relative;
+  width: 100%;
+  min-height: 640px;
+  height: calc(88vh - 106px);
+  max-height: 780px;
+  background: #0A1710 url('hero-cattle.jpg') center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+.hero-cinematic-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, 
+    rgba(10, 20, 14, 0.94) 0%, 
+    rgba(10, 20, 14, 0.82) 38%, 
+    rgba(10, 20, 14, 0.55) 68%, 
+    rgba(10, 20, 14, 0.35) 100%
+  ),
+  linear-gradient(180deg,
+    rgba(10, 20, 14, 0.45) 0%,
+    transparent 30%,
+    transparent 70%,
+    rgba(10, 20, 14, 0.92) 100%
+  );
+  pointer-events: none;
+}
+.hero-cinematic-container {
+  position: relative;
+  z-index: 10;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 60px 24px;
+  width: 100%;
+}
+.hero-cinematic-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 20px;
+}
+.hero-cinematic-tag-bullet {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: #FFFFFF;
+  opacity: 0.85;
+}
+.hero-cinematic-title {
+  font-family: 'Inter', var(--font-ui);
+  font-size: clamp(32px, 4.6vw, 60px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  color: #FFFFFF;
+  max-width: 840px;
+  margin-bottom: 20px;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+}
+.hero-cinematic-sub {
+  font-size: clamp(17px, 1.8vw, 23px);
+  font-weight: 400;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 620px;
+  margin-bottom: 36px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+.hero-cinematic-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.hero-btn-solid {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px 32px;
+  background: #3B483E;
+  color: #FFFFFF;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+.hero-btn-solid:hover {
+  background: #4A5B4F;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+}
+.hero-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px 32px;
+  background: rgba(14, 25, 18, 0.4);
+  backdrop-filter: blur(8px);
+  color: #FFFFFF;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+.hero-btn-outline:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: #FFFFFF;
+  transform: translateY(-2px);
+}
+
+/* ============================================================
+   SECCIONES INSTITUCIONALES (Remates, Lotes, Campos, Servicios)
+   ============================================================ */
+.section-institutional {
+  padding: 72px 0;
+  position: relative;
+}
+.section-institutional.bg-alt {
+  background-color: #FFFFFF;
+}
+.section-institutional.bg-dark {
+  background-color: var(--pine-950);
+  color: #FFFFFF;
+}
+.section-inner-container {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 24px;
+  width: 100%;
+}
+.section-heading-block {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+.section-title-wrap h2 {
+  font-family: 'Inter', var(--font-ui);
+  font-size: clamp(26px, 3.2vw, 38px);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--obsidian-950);
+  line-height: 1.2;
+}
+.section-institutional.bg-dark .section-title-wrap h2 {
+  color: #FFFFFF;
+}
+.section-title-wrap p {
+  font-size: 15px;
+  color: #556B5D;
+  margin-top: 6px;
+  max-width: 650px;
+}
+.section-institutional.bg-dark .section-title-wrap p {
+  color: #A3B8AC;
+}
+.section-link-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--olive-600);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.15s, transform 0.15s;
+}
+.section-link-action:hover {
+  color: var(--olive-500);
+  transform: translateX(3px);
+}
+.section-institutional.bg-dark .section-link-action {
+  color: var(--olive-300);
+}
+
+/* CARDS DE PRÓXIMOS REMATES */
+.remates-modern-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+.remate-modern-card {
+  background: #FFFFFF;
+  border: 1px solid #DCE5D6;
+  border-radius: 18px;
+  padding: 26px;
+  box-shadow: 0 4px 16px rgba(12, 21, 16, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+.remate-modern-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(12, 21, 16, 0.1);
+  border-color: var(--olive-400);
+}
+.remate-modern-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--olive-500), var(--olive-400));
+}
+.remate-date-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: var(--olive-50);
+  border: 1px solid var(--olive-200);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--olive-700);
+  margin-bottom: 16px;
+  align-self: flex-start;
+}
+.remate-card-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--obsidian-950);
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+.remate-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #556B5D;
+  margin-bottom: 8px;
+}
+.remate-meta-item svg {
+  width: 15px;
+  height: 15px;
+  color: var(--olive-600);
+  flex-shrink: 0;
+}
+
+/* CARDS DE LOTES */
+.lotes-modern-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 26px;
+}
+.lote-modern-card {
+  background: #FFFFFF;
+  border: 1px solid #DCE5D6;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(12, 21, 16, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+.lote-modern-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 34px rgba(12, 21, 16, 0.12);
+  border-color: var(--olive-400);
+}
+.lote-modern-img-wrap {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+  background: #14281D;
+}
+.lote-modern-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+.lote-modern-card:hover .lote-modern-img {
+  transform: scale(1.04);
+}
+.lote-modern-badge-floating {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 5px 12px;
+  background: rgba(14, 28, 19, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(130, 167, 83, 0.4);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 12px;
+  letter-spacing: 0.02em;
+}
+.lote-modern-body {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.lote-modern-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--obsidian-950);
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+.lote-modern-desc {
+  font-size: 12.5px;
+  color: #556B5D;
+  margin-bottom: 18px;
+  line-height: 1.45;
+}
+.lote-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 18px;
+  padding: 12px;
+  background: #F5F7F1;
+  border-radius: 12px;
+}
+.lote-metric-box {
+  display: flex;
+  flex-direction: column;
+}
+.lote-metric-lbl {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6E8274;
+  font-weight: 700;
+}
+.lote-metric-num {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--obsidian-950);
+}
+
+/* CARDS DE PROPIEDADES RURALES */
+.propiedades-modern-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 28px;
+}
+.propiedad-modern-card {
+  background: #FFFFFF;
+  border: 1px solid #DCE5D6;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(12, 21, 16, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+.propiedad-modern-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(12, 21, 16, 0.12);
+}
+.propiedad-modern-img-wrap {
+  position: relative;
+  height: 230px;
+  overflow: hidden;
+  background: #14281D;
+}
+.propiedad-modern-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+.propiedad-modern-card:hover .propiedad-modern-img {
+  transform: scale(1.04);
+}
+.propiedad-badge-floating {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 5px 12px;
+  background: rgba(14, 28, 19, 0.88);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(130, 167, 83, 0.4);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 12px;
+}
+.propiedad-hectareas-badge {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  padding: 5px 12px;
+  background: rgba(96, 126, 60, 0.9);
+  color: #FFFFFF;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 12px;
+}
+.propiedad-body {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.propiedad-location {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--olive-600);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 6px;
+}
+.propiedad-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--obsidian-950);
+  margin-bottom: 8px;
+}
+.propiedad-desc {
+  font-size: 12.5px;
+  color: #556B5D;
+  margin-bottom: 18px;
+  line-height: 1.45;
+}
+.propiedad-footer {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid #E6ECE1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* SERVICIOS INSTITUCIONALES */
+.servicios-modern-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+.servicio-modern-card {
+  background: #FFFFFF;
+  border: 1px solid #DCE5D6;
+  border-radius: 18px;
+  padding: 26px;
+  box-shadow: 0 2px 10px rgba(12, 21, 16, 0.04);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.servicio-modern-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--olive-400);
+  box-shadow: 0 8px 24px rgba(12, 21, 16, 0.08);
+}
+.servicio-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--olive-50);
+  border: 1px solid var(--olive-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 18px;
+  color: var(--olive-700);
+}
+
+/* BANNER DE CONTACTO & TRABAJEMOS JUNTOS */
+.cta-banner-official {
+  background: linear-gradient(135deg, #0C1510 0%, #14281D 50%, #193526 100%);
+  border: 1.5px solid rgba(130, 167, 83, 0.4);
+  border-radius: 24px;
+  padding: 48px 40px;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4);
+  color: #FFFFFF;
+  position: relative;
+  overflow: hidden;
+}
+
+/* FOOTER OFICIAL */
+.footer-official {
+  background: #0C1510;
+  border-top: 1px solid rgba(130, 167, 83, 0.2);
+  color: #CFD9D2;
+  padding: 64px 0 32px;
+  font-size: 13px;
+}
+.footer-col-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.footer-links-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.footer-links-list a, .footer-links-list button {
+  color: #A3B8AC;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  font-size: 13px;
+  transition: color 0.15s ease;
+}
+.footer-links-list a:hover, .footer-links-list button:hover {
+  color: #FFFFFF;
+}/* Contenedor centralizado para Vistas del Sistema (Mesa de Operaciones, Liquidación, Clientes, etc.) */
+.seccion-vista:not(#seccion-inicio) {
+  max-width: 1360px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+@media (max-width: 768px) {
+  .seccion-vista:not(#seccion-inicio) {
+    padding: 16px 12px;
+  }
+}
+
 @media print {
-  /* Ocultar barra superior, botones, modales y navegación */
-  header,
-  .no-print,
+  header, .no-print,
   #modal-excel > div > div:first-child,
-  #modal-excel > div > div:nth-child(2) {
-    display: none !important;
-  }
-
-  body {
-    background-color: white !important;
-    color: black !important;
-    padding: 0 !important;
-  }
-
-  #modal-excel {
-    position: static !important;
-    background: transparent !important;
-    backdrop-filter: none !important;
-    display: block !important;
-    padding: 0 !important;
-  }
-
-  #modal-excel > div {
-    max-width: 100% !important;
-    width: 100% !important;
-    box-shadow: none !important;
-    border: none !important;
-  }
-
-  #contenedor-impresion {
-    padding: 0 !important;
-    overflow: visible !important;
-  }
-
-  /* Mostrar todas las hojas en impresión continua o la seleccionada */
-  table {
-    page-break-inside: avoid;
-  }
+  #modal-excel > div > div:nth-child(2) { display:none !important; }
+  body { background-color:white !important; color:black !important; padding:0 !important; }
+  #modal-excel { position:static !important; background:transparent !important; backdrop-filter:none !important; display:block !important; padding:0 !important; }
+  #modal-excel > div { max-width:100% !important; width:100% !important; box-shadow:none !important; border:none !important; }
+  #contenedor-impresion { padding:0 !important; overflow:visible !important; }
+  table { page-break-inside:avoid; }
 }

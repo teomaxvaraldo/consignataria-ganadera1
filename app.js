@@ -1,23 +1,605 @@
-// AgroGestión - Consignataria Ganadera
-// Lógica principal de la aplicación
+// CAMPOGEST — Sistema Integral de Consignación Ganadera
+// Lógica principal y motor de la plataforma
 
-// Estado global de la aplicación
+// Cuentas de demostración de acceso corporativo por compañía (con contraseña)
+const CAMPOGEST_USUARIOS_DEFAULT = [
+  {
+    id: 'usr_cg_1',
+    usuario: 'operador@campogest.com',
+    alias: 'campogest',
+    password: 'campo123',
+    operador: 'OPERADOR CAMPOGEST',
+    rol: 'Mesa de Operaciones & Liquidaciones',
+    empresaId: 'campogest',
+    empresaNombre: 'CAMPOGEST CONSIGNACIONES SRL',
+    empresaCuit: '30-71458921-8',
+    empresaRuca: '48192',
+    empresaLocalidad: 'Buenos Aires (CABA)',
+    monogram: 'CG'
+  },
+  {
+    id: 'usr_oeste_1',
+    usuario: 'martin@oeste.com',
+    alias: 'martin',
+    password: 'oeste123',
+    operador: 'MARTÍN G.',
+    rol: 'Mesa de Operaciones',
+    empresaId: 'cdo',
+    empresaNombre: 'CONSIGNATARIA DEL OESTE SA',
+    empresaCuit: '30-68945123-4',
+    empresaRuca: '32104',
+    empresaLocalidad: 'Pehuajó (BA)',
+    monogram: 'CDO'
+  },
+  {
+    id: 'usr_pampa_1',
+    usuario: 'pampeana@campo.com',
+    alias: 'sofia',
+    password: 'pampa123',
+    operador: 'SOFÍA B.',
+    rol: 'Administración & Finanzas',
+    empresaId: 'gpa',
+    empresaNombre: 'GANADERA PAMPEANA SA',
+    empresaCuit: '33-70891234-9',
+    empresaRuca: '51209',
+    empresaLocalidad: 'Santa Rosa (LP)',
+    monogram: 'GPA'
+  }
+];
+
+// Estado global de la aplicación con soporte Multi-Compañía y Autenticación con Contraseña
 let estadoApp = {
   negocios: [],
   clientes: [],
   negocioActual: null,
-  vistaActual: 'negocios'
+  vistaActual: 'inicio',
+  usuarioAutenticado: false,
+  sesion: null,
+  usuarios: [],
+  empresasRegistradas: [
+    { id: 'campogest', nombre: 'CAMPOGEST CONSIGNACIONES SRL', cuit: '30-71458921-8', ruca: '48192', localidad: 'Buenos Aires (CABA)', monogram: 'CG' },
+    { id: 'cdo', nombre: 'CONSIGNATARIA DEL OESTE SA', cuit: '30-68945123-4', ruca: '32104', localidad: 'Pehuajó (BA)', monogram: 'CDO' },
+    { id: 'gpa', nombre: 'GANADERA PAMPEANA SA', cuit: '33-70891234-9', ruca: '51209', localidad: 'Santa Rosa (LP)', monogram: 'GPA' }
+  ]
 };
 
 // ==========================================
-// 1. INICIALIZACIÓN Y PERSISTENCIA LOCAL
+// 1. GESTIÓN DE SESIÓN & AUTENTICACIÓN CON CONTRASEÑA
 // ==========================================
+
+function cargarSesion() {
+  // 1. Cargar usuarios guardados o inicializar defaults
+  const usuariosGuardados = localStorage.getItem('campogest_usuarios');
+  if (usuariosGuardados) {
+    try {
+      const arr = JSON.parse(usuariosGuardados);
+      if (Array.isArray(arr) && arr.length > 0) {
+        estadoApp.usuarios = arr;
+      }
+    } catch (e) {
+      console.warn("Error parseando usuarios guardados", e);
+    }
+  }
+  if (!estadoApp.usuarios || estadoApp.usuarios.length === 0) {
+    estadoApp.usuarios = JSON.parse(JSON.stringify(CAMPOGEST_USUARIOS_DEFAULT));
+    localStorage.setItem('campogest_usuarios', JSON.stringify(estadoApp.usuarios));
+  }
+
+  // 2. Cargar empresas guardadas
+  const empresasGuardadas = localStorage.getItem('campogest_empresas');
+  if (empresasGuardadas) {
+    try {
+      const arr = JSON.parse(empresasGuardadas);
+      if (Array.isArray(arr) && arr.length > 0) {
+        arr.forEach(emp => {
+          if (!estadoApp.empresasRegistradas.some(e => e.id === emp.id)) {
+            estadoApp.empresasRegistradas.push(emp);
+          }
+        });
+      }
+    } catch (e) {
+      console.warn("Error parseando empresas guardadas", e);
+    }
+  }
+
+  // 3. Cargar sesión activa
+  const sesionGuardada = localStorage.getItem('campogest_sesion');
+  if (sesionGuardada) {
+    try {
+      const parsed = JSON.parse(sesionGuardada);
+      if (parsed && (parsed.usuario || parsed.empresaNombre)) {
+        // Enlazar con el registro actualizado de usuarios
+        const uExiste = estadoApp.usuarios.find(u => u.id === parsed.id || u.usuario === parsed.usuario);
+        if (uExiste) {
+          estadoApp.sesion = { ...uExiste };
+          estadoApp.usuarioAutenticado = true;
+        } else {
+          estadoApp.sesion = parsed;
+          estadoApp.usuarioAutenticado = true;
+        }
+      } else {
+        estadoApp.usuarioAutenticado = false;
+        estadoApp.sesion = null;
+      }
+    } catch (e) {
+      console.warn("Error parseando sesión guardada", e);
+      estadoApp.usuarioAutenticado = false;
+      estadoApp.sesion = null;
+    }
+  } else {
+    estadoApp.usuarioAutenticado = false;
+    estadoApp.sesion = null;
+  }
+
+  actualizarHeaderSesion();
+  renderizarPanelSesionInicio();
+}
+
+function guardarSesion() {
+  if (estadoApp.usuarioAutenticado && estadoApp.sesion) {
+    localStorage.setItem('campogest_sesion', JSON.stringify(estadoApp.sesion));
+  } else {
+    localStorage.removeItem('campogest_sesion');
+  }
+  localStorage.setItem('campogest_usuarios', JSON.stringify(estadoApp.usuarios));
+  localStorage.setItem('campogest_empresas', JSON.stringify(estadoApp.empresasRegistradas));
+  actualizarHeaderSesion();
+  renderizarPanelSesionInicio();
+}
+
+function actualizarHeaderSesion() {
+  const container = document.getElementById('header-sesion-slot');
+  const hEmpresa = document.getElementById('header-empresa');
+  const optFiltro = document.getElementById('opt-filtro-mi-empresa');
+
+  if (hEmpresa) hEmpresa.innerHTML = '<span style="color:#FFFFFF;">CAMPO</span><span style="color:var(--olive-400);">GEST</span>';
+
+  if (estadoApp.usuarioAutenticado && estadoApp.sesion) {
+    const ses = estadoApp.sesion;
+    if (optFiltro) optFiltro.textContent = `Mis Negocios (${ses.empresaNombre})`;
+
+    if (container) {
+      container.innerHTML = `
+        <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-stone-700/80 bg-stone-900/80 cursor-pointer hover:bg-stone-800 hover:border-emerald-500/50 transition group" style="background:rgba(18,32,23,0.85); border:1px solid rgba(130,167,83,0.3);" onclick="abrirModalSesion()" title="Cuenta activa: ${ses.operador} (${ses.empresaNombre}). Clic para ver opciones o cambiar de usuario.">
+          <div class="w-7 h-7 rounded-lg font-bold flex items-center justify-center text-xs font-mono" style="background:rgba(96,126,60,0.25); color:var(--olive-300); border:1px solid rgba(130,167,83,0.4);">
+            ${ses.monogram || 'CG'}
+          </div>
+          <div class="text-left hidden sm:block">
+            <div class="text-[10px] text-stone-400 font-semibold leading-tight flex items-center gap-1">
+              <span class="text-stone-300 font-medium max-w-[130px] truncate">${ses.empresaNombre}</span>
+              <svg class="text-stone-500 group-hover:text-emerald-400 transition" width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+            <div class="operator-name text-xs text-white">${ses.operador || 'OPERADOR'}</div>
+          </div>
+        </div>
+      `;
+    }
+  } else {
+    if (optFiltro) optFiltro.textContent = 'Mis Negocios (Iniciar Sesión)';
+
+    if (container) {
+      container.innerHTML = `
+        <button type="button" onclick="router('acceso')" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-emerald-500/40 font-bold text-xs transition cursor-pointer shadow-sm hover:border-emerald-400" style="background:rgba(20,38,26,0.85); color:var(--olive-300); border-color:rgba(130,167,83,0.45);">
+          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          <span>Iniciar Sesión</span>
+        </button>
+      `;
+    }
+  }
+}
+
+function renderizarPanelSesionInicio() {
+  const viewActiva = document.getElementById('inicio-sesion-activa-view');
+  const viewLogin = document.getElementById('inicio-sesion-login-view');
+  const btnCancelar = document.getElementById('btn-cancelar-login-inicio-box');
+
+  if (estadoApp.usuarioAutenticado && estadoApp.sesion) {
+    const ses = estadoApp.sesion;
+    if (viewActiva) viewActiva.classList.remove('hidden');
+    if (viewLogin) viewLogin.classList.add('hidden');
+    if (btnCancelar) btnCancelar.classList.remove('hidden');
+
+    const cardMono = document.getElementById('inicio-card-monogram');
+    const cardNom = document.getElementById('inicio-card-empresa-nombre');
+    const cardDet = document.getElementById('inicio-card-empresa-detalles');
+    const cardOp = document.getElementById('inicio-card-operador');
+    const cardRol = document.getElementById('inicio-card-rol');
+
+    if (cardMono) cardMono.textContent = ses.monogram || 'CG';
+    if (cardNom) cardNom.textContent = ses.empresaNombre;
+    if (cardDet) cardDet.textContent = `CUIT ${ses.empresaCuit || '-'} · RUCA ${ses.empresaRuca || '-'}${ses.empresaLocalidad ? ' · ' + ses.empresaLocalidad : ''}`;
+    if (cardOp) cardOp.textContent = ses.operador || 'OPERADOR';
+    if (cardRol) cardRol.textContent = ses.rol || 'Operador de Mesa';
+  } else {
+    if (viewActiva) viewActiva.classList.add('hidden');
+    if (viewLogin) viewLogin.classList.remove('hidden');
+    if (btnCancelar) btnCancelar.classList.add('hidden');
+  }
+}
+
+function mostrarFormularioLoginInicio() {
+  const viewActiva = document.getElementById('inicio-sesion-activa-view');
+  const viewLogin = document.getElementById('inicio-sesion-login-view');
+  const btnCancelar = document.getElementById('btn-cancelar-login-inicio-box');
+
+  if (viewActiva) viewActiva.classList.add('hidden');
+  if (viewLogin) viewLogin.classList.remove('hidden');
+  if (btnCancelar) btnCancelar.classList.remove('hidden');
+
+  cambiarTabAuth('login');
+  const inpUser = document.getElementById('inp-login-user');
+  if (inpUser) inpUser.focus();
+}
+
+function cancelarFormularioLoginInicio() {
+  if (estadoApp.usuarioAutenticado && estadoApp.sesion) {
+    const viewActiva = document.getElementById('inicio-sesion-activa-view');
+    const viewLogin = document.getElementById('inicio-sesion-login-view');
+    if (viewActiva) viewActiva.classList.remove('hidden');
+    if (viewLogin) viewLogin.classList.add('hidden');
+  }
+}
+
+// Conmutar entre pestaña de Login y Registro de Compañía
+function cambiarTabAuth(tab) {
+  const btnLogin = document.getElementById('tab-btn-login');
+  const btnReg = document.getElementById('tab-btn-registro');
+  const panelLogin = document.getElementById('panel-auth-login');
+  const panelReg = document.getElementById('panel-auth-registro');
+  const errLogin = document.getElementById('login-error-msg');
+  const errReg = document.getElementById('reg-error-msg');
+
+  if (errLogin) errLogin.classList.add('hidden');
+  if (errReg) errReg.classList.add('hidden');
+
+  if (tab === 'login') {
+    if (btnLogin) btnLogin.classList.add('active');
+    if (btnReg) btnReg.classList.remove('active');
+    if (panelLogin) panelLogin.classList.remove('hidden');
+    if (panelReg) panelReg.classList.add('hidden');
+  } else {
+    if (btnReg) btnReg.classList.add('active');
+    if (btnLogin) btnLogin.classList.remove('active');
+    if (panelReg) panelReg.classList.remove('hidden');
+    if (panelLogin) panelLogin.classList.add('hidden');
+  }
+}
+
+// Alternar visibilidad de contraseña (mostrar/ocultar)
+function togglePasswordVisibility(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  if (!inp) return;
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    if (btn) {
+      btn.innerHTML = `<svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/></svg>`;
+      btn.title = "Ocultar contraseña";
+    }
+  } else {
+    inp.type = 'password';
+    if (btn) {
+      btn.innerHTML = `<svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`;
+      btn.title = "Ver contraseña";
+    }
+  }
+}
+
+// Cargar credenciales preconfiguradas para pruebas inmediatas
+function cargarCredencialesDemo(user, pass) {
+  cambiarTabAuth('login');
+  const inpUser = document.getElementById('inp-login-user');
+  const inpPass = document.getElementById('inp-login-pass');
+  const errBox = document.getElementById('login-error-msg');
+  if (errBox) errBox.classList.add('hidden');
+
+  if (inpUser) {
+    inpUser.value = user;
+    inpUser.style.borderColor = '#10B981';
+  }
+  if (inpPass) {
+    inpPass.value = pass;
+    inpPass.style.borderColor = '#10B981';
+  }
+
+  setTimeout(() => {
+    if (inpUser) inpUser.style.borderColor = '';
+    if (inpPass) inpPass.style.borderColor = '';
+  }, 1200);
+
+  showToast(`Credenciales cargadas: ${user} / ${pass}. Clic en Ingresar.`, '🔑');
+}
+
+// Login con verificación estricta de contraseña
+function ejecutarLoginCampogest() {
+  const inpUser = document.getElementById('inp-login-user');
+  const inpPass = document.getElementById('inp-login-pass');
+  const errBox = document.getElementById('login-error-msg');
+  const errText = document.getElementById('login-error-text');
+
+  if (errBox) errBox.classList.add('hidden');
+
+  const userVal = (inpUser?.value || '').trim();
+  const passVal = (inpPass?.value || '').trim();
+
+  if (!userVal) {
+    if (errBox && errText) {
+      errText.textContent = 'Por favor ingresá tu usuario o correo de compañía';
+      errBox.classList.remove('hidden');
+      errBox.classList.add('login-auth-error');
+      setTimeout(() => errBox.classList.remove('login-auth-error'), 400);
+    }
+    inpUser?.focus();
+    return;
+  }
+
+  if (!passVal) {
+    if (errBox && errText) {
+      errText.textContent = 'Por favor ingresá tu contraseña de acceso';
+      errBox.classList.remove('hidden');
+      errBox.classList.add('login-auth-error');
+      setTimeout(() => errBox.classList.remove('login-auth-error'), 400);
+    }
+    inpPass?.focus();
+    return;
+  }
+
+  // Buscar coincidencia en la base de usuarios
+  const usuarioEncontrado = estadoApp.usuarios.find(u => 
+    (u.usuario && u.usuario.toLowerCase() === userVal.toLowerCase()) ||
+    (u.alias && u.alias.toLowerCase() === userVal.toLowerCase())
+  );
+
+  if (!usuarioEncontrado || usuarioEncontrado.password !== passVal) {
+    if (errBox && errText) {
+      errText.textContent = 'Usuario o contraseña incorrectos. Verificá los datos ingresados.';
+      errBox.classList.remove('hidden');
+      errBox.classList.add('login-auth-error');
+      setTimeout(() => errBox.classList.remove('login-auth-error'), 400);
+    }
+    showToast('Credenciales inválidas', '❌');
+    inpPass?.focus();
+    return;
+  }
+
+  // Login Exitoso
+  estadoApp.usuarioAutenticado = true;
+  estadoApp.sesion = { ...usuarioEncontrado };
+  guardarSesion();
+
+  showToast(`¡Bienvenido a CAMPOGEST, ${usuarioEncontrado.operador}! (${usuarioEncontrado.empresaNombre})`, '🏢');
+  router('negocios');
+}
+
+// Registro de Nueva Compañía y Usuario con Contraseña
+function ejecutarRegistroCampogest() {
+  const inpEmpresa = document.getElementById('inp-reg-empresa');
+  const inpCuit = document.getElementById('inp-reg-cuit');
+  const inpRuca = document.getElementById('inp-reg-ruca');
+  const inpLoc = document.getElementById('inp-reg-loc');
+  const inpOp = document.getElementById('inp-reg-operador');
+  const inpRol = document.getElementById('inp-reg-rol');
+  const inpUser = document.getElementById('inp-reg-user');
+  const inpPass = document.getElementById('inp-reg-pass');
+  const errBox = document.getElementById('reg-error-msg');
+  const errText = document.getElementById('reg-error-text');
+
+  if (errBox) errBox.classList.add('hidden');
+
+  const empNombre = (inpEmpresa?.value || '').toUpperCase().trim();
+  const cuit = (inpCuit?.value || '').trim();
+  const ruca = (inpRuca?.value || '').trim();
+  const loc = (inpLoc?.value || '').trim();
+  const op = (inpOp?.value || '').toUpperCase().trim();
+  const rol = inpRol?.value || 'Operador de Mesa';
+  const user = (inpUser?.value || '').toLowerCase().trim();
+  const pass = (inpPass?.value || '').trim();
+
+  if (!empNombre) {
+    mostrarErrorRegistro('Por favor ingresá la Razón Social de la consignataria');
+    inpEmpresa?.focus();
+    return;
+  }
+  if (!op) {
+    mostrarErrorRegistro('Por favor ingresá el nombre del operador responsable');
+    inpOp?.focus();
+    return;
+  }
+  if (!user) {
+    mostrarErrorRegistro('Por favor ingresá un usuario o email para iniciar sesión');
+    inpUser?.focus();
+    return;
+  }
+  if (!pass || pass.length < 4) {
+    mostrarErrorRegistro('La contraseña debe tener al menos 4 caracteres');
+    inpPass?.focus();
+    return;
+  }
+
+  // Verificar si el usuario ya existe
+  if (estadoApp.usuarios.some(u => u.usuario.toLowerCase() === user)) {
+    mostrarErrorRegistro('Ese usuario o email ya está registrado. Elegí otro identificador.');
+    inpUser?.focus();
+    return;
+  }
+
+  // Monograma de la empresa
+  const words = empNombre.replace(/[^A-Z0-9 ]/g, '').split(' ').filter(Boolean);
+  const mono = words.length >= 2 ? (words[0][0] + words[1][0] + (words[2]?.[0] || '')) : empNombre.substring(0, 3);
+
+  const empId = 'emp_' + Date.now();
+  const nuevaEmpresa = {
+    id: empId,
+    nombre: empNombre,
+    cuit: cuit || '30-00000000-0',
+    ruca: ruca || '-',
+    localidad: loc || 'Buenos Aires',
+    monogram: mono.toUpperCase()
+  };
+
+  const nuevoUsuario = {
+    id: 'usr_' + Date.now(),
+    usuario: user,
+    alias: user.split('@')[0],
+    password: pass,
+    operador: op,
+    rol: rol,
+    empresaId: empId,
+    empresaNombre: empNombre,
+    empresaCuit: nuevaEmpresa.cuit,
+    empresaRuca: nuevaEmpresa.ruca,
+    empresaLocalidad: nuevaEmpresa.localidad,
+    monogram: mono.toUpperCase()
+  };
+
+  estadoApp.empresasRegistradas.push(nuevaEmpresa);
+  estadoApp.usuarios.push(nuevoUsuario);
+
+  estadoApp.usuarioAutenticado = true;
+  estadoApp.sesion = { ...nuevoUsuario };
+  guardarSesion();
+
+  showToast(`¡Compañía ${empNombre} y usuario ${user} creados con éxito!`, '🎉');
+  router('negocios');
+}
+
+function mostrarErrorRegistro(msg) {
+  const errBox = document.getElementById('reg-error-msg');
+  const errText = document.getElementById('reg-error-text');
+  if (errBox && errText) {
+    errText.textContent = msg;
+    errBox.classList.remove('hidden');
+    errBox.classList.add('login-auth-error');
+    setTimeout(() => errBox.classList.remove('login-auth-error'), 400);
+  }
+  showToast(msg, '⚠️');
+}
+
+// Cierre de Sesión Completo
+function cerrarSesionCampogest() {
+  cerrarModalSesion();
+  estadoApp.usuarioAutenticado = false;
+  estadoApp.sesion = null;
+  localStorage.removeItem('campogest_sesion');
+  actualizarHeaderSesion();
+  router('inicio');
+  const viewActiva = document.getElementById('inicio-sesion-activa-view');
+  const viewLogin = document.getElementById('inicio-sesion-login-view');
+  if (viewActiva) viewActiva.classList.add('hidden');
+  if (viewLogin) viewLogin.classList.remove('hidden');
+  cambiarTabAuth('login');
+  showToast('Sesión cerrada. Iniciá sesión con tu contraseña para continuar.', '🔒');
+}
+
+// Modal de Sesión / Cuentas Corporativas
+function abrirModalSesion() {
+  const modal = document.getElementById('modal-sesion');
+  if (!modal) return;
+
+  const ses = estadoApp.sesion;
+  const modEmp = document.getElementById('modal-sesion-actual-empresa');
+  const modDet = document.getElementById('modal-sesion-actual-detalles');
+  const inpOp = document.getElementById('inp-modal-operador');
+  const inpRol = document.getElementById('inp-modal-rol');
+
+  if (modEmp) modEmp.textContent = ses?.empresaNombre || 'CAMPOGEST';
+  if (modDet) modDet.textContent = `${ses?.operador || 'OPERADOR'} · ${ses?.rol || 'Mesa de Operaciones'}`;
+  if (inpOp) inpOp.value = ses?.operador || '';
+  if (inpRol) inpRol.value = ses?.rol || 'Operador de Mesa';
+
+  renderizarListaEmpresasModal();
+  modal.classList.remove('hidden');
+}
+
+function cerrarModalSesion() {
+  const modal = document.getElementById('modal-sesion');
+  if (modal) modal.classList.add('hidden');
+}
+
+function renderizarListaEmpresasModal() {
+  const cont = document.getElementById('modal-sesion-empresas-lista');
+  if (!cont) return;
+
+  let html = '';
+  estadoApp.usuarios.forEach(u => {
+    const isCurrent = estadoApp.sesion && (estadoApp.sesion.id === u.id || estadoApp.sesion.usuario === u.usuario);
+    html += `
+      <div class="flex items-center justify-between p-2.5 rounded-xl border ${isCurrent ? 'border-emerald-500 bg-emerald-50/80 font-bold text-emerald-950' : 'border-slate-200 hover:bg-slate-50 text-slate-700'} cursor-pointer transition" onclick="conmutarUsuarioDesdeModal('${u.id}')">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-lg ${isCurrent ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'} font-bold flex items-center justify-center text-xs font-mono">
+            ${u.monogram || 'CG'}
+          </div>
+          <div>
+            <div class="text-xs font-bold leading-tight">${u.empresaNombre}</div>
+            <div class="text-[10px] text-slate-500 font-mono">${u.operador} (${u.usuario}) · ${u.rol}</div>
+          </div>
+        </div>
+        ${isCurrent ? '<span class="text-emerald-600 text-xs font-bold">✓ Activa</span>' : '<span class="text-emerald-600 text-xs font-semibold hover:underline">Acceder ➔</span>'}
+      </div>
+    `;
+  });
+
+  cont.innerHTML = html;
+}
+
+function conmutarUsuarioDesdeModal(usuarioId) {
+  const target = estadoApp.usuarios.find(u => u.id === usuarioId);
+  if (!target) return;
+  if (estadoApp.sesion && (estadoApp.sesion.id === target.id || estadoApp.sesion.usuario === target.usuario)) {
+    cerrarModalSesion();
+    return;
+  }
+
+  const passPrompt = prompt(`Ingresá la contraseña para acceder como ${target.operador} (${target.empresaNombre}):`);
+  if (!passPrompt) return;
+  if (passPrompt.trim() !== target.password) {
+    alert("❌ Contraseña incorrecta para este usuario.");
+    return;
+  }
+
+  estadoApp.usuarioAutenticado = true;
+  estadoApp.sesion = { ...target };
+  guardarSesion();
+  cerrarModalSesion();
+  showToast(`Compañía activa: ${target.empresaNombre}`, '🏢');
+
+  if (estadoApp.vistaActual === 'negocios') {
+    renderizarTablaNegocios();
+    actualizarMetricasKPI();
+  }
+}
+
+function guardarSesionDesdeModal() {
+  if (!estadoApp.sesion) {
+    cerrarModalSesion();
+    router('inicio');
+    return;
+  }
+  const op = (document.getElementById('inp-modal-operador')?.value || '').toUpperCase().trim();
+  const rol = document.getElementById('inp-modal-rol')?.value || 'Operador de Mesa';
+  if (op) estadoApp.sesion.operador = op;
+  if (rol) estadoApp.sesion.rol = rol;
+
+  // Actualizar también en la lista de usuarios
+  const u = estadoApp.usuarios.find(x => x.id === estadoApp.sesion.id);
+  if (u) {
+    u.operador = estadoApp.sesion.operador;
+    u.rol = estadoApp.sesion.rol;
+  }
+
+  guardarSesion();
+  cerrarModalSesion();
+  showToast('Datos de operador actualizados', '✓');
+}
+
+
 // ==========================================
-// 1. INICIALIZACIÓN Y PERSISTENCIA (HÍBRIDO CLOUD FIRESTORE + LOCAL CACHE)
+// 2. INICIALIZACIÓN Y PERSISTENCIA (HÍBRIDO CLOUD FIRESTORE + LOCAL CACHE)
 // ==========================================
 
 function inicializarApp() {
+  cargarSesion();
   actualizarEstadoConexionUI();
+  iniciarAutoSlider();
 
   if (typeof modoNubeActivo !== 'undefined' && modoNubeActivo && db) {
     console.log("🔥 [AgroGestión] Iniciando sincronización en tiempo real con Google Cloud Firestore...");
@@ -36,6 +618,7 @@ function inicializarApp() {
     if (estadoApp.negocios.length > 0) {
       cargarNegocioEnFormulario(estadoApp.negocios[0]);
     }
+    router('inicio');
   }
 }
 
@@ -67,6 +650,7 @@ function conectarFirestoreTiempoReal() {
   if (estadoApp.negocios.length > 0) {
     cargarNegocioEnFormulario(estadoApp.negocios[0]);
   }
+  router('inicio');
 
   // 1. Escucha en Tiempo Real de Negocios
   db.collection('negocios').onSnapshot(snapshot => {
@@ -195,39 +779,156 @@ function guardarEnLocalStorage() {
 }
 
 // ==========================================
-// 2. NAVEGACIÓN ENTRE VISTAS (ROUTER)
+// 2. NAVEGACIÓN ENTRE VISTAS & RUTAS PROTEGIDAS
 // ==========================================
+function navegarRutaProtegida(vista) {
+  if (!estadoApp.usuarioAutenticado) {
+    showToast('🔒 Acceso restringido. Iniciá sesión con tu compañía para operar.', '🔒');
+    router('acceso');
+    const inpUser = document.getElementById('inp-login-user');
+    if (inpUser) setTimeout(() => inpUser.focus(), 300);
+    return false;
+  }
+  router(vista);
+  return true;
+}
+
 function router(vista) {
+  // Las rutas libres son 'inicio' (institucional) y 'acceso' (login / registro)
+  if (vista !== 'inicio' && vista !== 'acceso' && !estadoApp.usuarioAutenticado) {
+    showToast('🔒 Acceso restringido. Por favor iniciá sesión con contraseña.', '🔒');
+    vista = 'acceso';
+  }
+
   estadoApp.vistaActual = vista;
 
-  // Ocultar todas las secciones
-  document.querySelectorAll('.seccion-vista').forEach(sec => sec.classList.add('hidden'));
+  // 1. Ocultar todas las secciones asegurando compatibilidad total
+  document.querySelectorAll('.seccion-vista').forEach(sec => {
+    sec.classList.add('hidden');
+    sec.style.removeProperty('display');
+  });
 
-  // Quitar clase active de nav
+  // 2. Quitar clase active de nav
   document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
 
-  // Mostrar sección seleccionada
-  if (vista === 'negocios') {
-    document.getElementById('seccion-negocios').classList.remove('hidden');
-    document.getElementById('nav-btn-negocios').classList.add('active');
+  // 3. Mostrar sección seleccionada y activar botón correspondiente
+  if (vista === 'inicio') {
+    const sec = document.getElementById('seccion-inicio');
+    const btn = document.getElementById('nav-btn-inicio');
+    if (sec) sec.classList.remove('hidden');
+    if (btn) btn.classList.add('active');
+  } else if (vista === 'acceso') {
+    const sec = document.getElementById('seccion-acceso');
+    const btn = document.getElementById('nav-btn-acceso');
+    if (sec) sec.classList.remove('hidden');
+    if (btn) btn.classList.add('active');
+    renderizarPanelSesionInicio();
+    const portal = document.getElementById('portal-sesion-card');
+    if (portal) {
+      portal.classList.add('fadeInCenter');
+      setTimeout(() => portal.classList.remove('fadeInCenter'), 500);
+    }
+  } else if (vista === 'negocios') {
+    const sec = document.getElementById('seccion-negocios');
+    const btn = document.getElementById('nav-btn-negocios');
+    if (sec) sec.classList.remove('hidden');
+    if (btn) btn.classList.add('active');
     actualizarMetricasKPI();
     renderizarTablaNegocios();
   } else if (vista === 'nuevo') {
-    document.getElementById('seccion-formulario').classList.remove('hidden');
-    document.getElementById('nav-btn-nuevo').classList.add('active');
+    const sec = document.getElementById('seccion-formulario');
+    const btn = document.getElementById('nav-btn-nuevo');
+    if (sec) sec.classList.remove('hidden');
+    if (btn) btn.classList.add('active');
   } else if (vista === 'clientes') {
-    document.getElementById('seccion-clientes').classList.remove('hidden');
-    document.getElementById('nav-btn-clientes').classList.add('active');
+    const sec = document.getElementById('seccion-clientes');
+    const btn = document.getElementById('nav-btn-clientes');
+    if (sec) sec.classList.remove('hidden');
+    if (btn) btn.classList.add('active');
     renderizarTablaClientes();
   } else if (vista === 'vencimientos') {
-    document.getElementById('seccion-vencimientos').classList.remove('hidden');
-    document.getElementById('nav-btn-vencimientos').classList.add('active');
+    const sec = document.getElementById('seccion-vencimientos');
+    const btn = document.getElementById('nav-btn-vencimientos');
+    if (sec) sec.classList.remove('hidden');
+    if (btn) btn.classList.add('active');
     renderizarVencimientos();
   } else if (vista === 'liquidacion') {
-    document.getElementById('seccion-liquidacion').classList.remove('hidden');
-    document.getElementById('nav-btn-liquidacion').classList.add('active');
+    const sec = document.getElementById('seccion-liquidacion');
+    const btn = document.getElementById('nav-btn-liquidacion');
+    if (sec) sec.classList.remove('hidden');
+    if (btn) btn.classList.add('active');
     renderizarVistaLiquidacion();
   }
+
+  // Scroll suave al inicio
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ==========================================
+// CONTROLADOR DEL CARRUSEL DE LOTES DE VACAS
+// ==========================================
+let sliderIntervalo = null;
+let slideActualIdx = 0;
+
+function sliderNextSlide() {
+  const slides = document.querySelectorAll('.cattle-slide');
+  if (!slides || slides.length === 0) return;
+  slideActualIdx = (slideActualIdx + 1) % slides.length;
+  sliderAplicarSlide(slideActualIdx);
+}
+
+function sliderPrevSlide() {
+  const slides = document.querySelectorAll('.cattle-slide');
+  if (!slides || slides.length === 0) return;
+  slideActualIdx = (slideActualIdx - 1 + slides.length) % slides.length;
+  sliderAplicarSlide(slideActualIdx);
+}
+
+function sliderGoToSlide(idx) {
+  slideActualIdx = idx;
+  sliderAplicarSlide(slideActualIdx);
+  reiniciarAutoSlider();
+}
+
+function sliderAplicarSlide(idx) {
+  const slides = document.querySelectorAll('.cattle-slide');
+  const tabs = document.querySelectorAll('.cattle-slider-tab');
+  const dots = document.querySelectorAll('.cattle-slider-dot');
+
+  slides.forEach((s, i) => {
+    if (i === idx) {
+      s.classList.add('active');
+    } else {
+      s.classList.remove('active');
+    }
+  });
+
+  tabs.forEach((t, i) => {
+    if (i === idx) {
+      t.classList.add('active');
+    } else {
+      t.classList.remove('active');
+    }
+  });
+
+  dots.forEach((d, i) => {
+    if (i === idx) {
+      d.classList.add('active');
+    } else {
+      d.classList.remove('active');
+    }
+  });
+}
+
+function iniciarAutoSlider() {
+  if (sliderIntervalo) clearInterval(sliderIntervalo);
+  sliderIntervalo = setInterval(() => {
+    sliderNextSlide();
+  }, 5000);
+}
+
+function reiniciarAutoSlider() {
+  iniciarAutoSlider();
 }
 
 // ==========================================
@@ -256,13 +957,24 @@ function actualizarMetricasKPI() {
 
   const promedio = totalCabezas > 0 ? Math.round(totalKilos / totalCabezas) : 0;
   document.getElementById('kpi-promedio-kilo').textContent = `${promedio} kg/cab`;
+
+  const subMargen = document.getElementById('kpi-sub-margen');
+  if (subMargen) {
+    subMargen.textContent = `Ganancia neta ${estadoApp.sesion?.empresaNombre || 'Consignataria'}`;
+  }
+  const badgeEmpresa = document.getElementById('kpi-badge-empresa');
+  if (badgeEmpresa) {
+    badgeEmpresa.textContent = estadoApp.sesion?.monogram || 'CG';
+  }
 }
 
 function renderizarTablaNegocios() {
   const tbody = document.getElementById('tabla-negocios-body');
-  const busqueda = (document.getElementById('filtro-busqueda').value || '').toLowerCase();
-  const filtroEstado = document.getElementById('filtro-estado').value;
+  const busqueda = (document.getElementById('filtro-busqueda')?.value || '').toLowerCase();
+  const filtroEstado = document.getElementById('filtro-estado')?.value || 'todos';
   const filtroTipo = document.getElementById('filtro-tipo')?.value || 'todos';
+  const filtroEmpresa = document.getElementById('filtro-empresa')?.value || 'mi-empresa';
+  const empresaActiva = (estadoApp.sesion?.empresaNombre || '').toUpperCase().trim();
 
   tbody.innerHTML = '';
 
@@ -272,19 +984,47 @@ function renderizarTablaNegocios() {
       neg.vendedor.toLowerCase().includes(busqueda) ||
       neg.comprador.toLowerCase().includes(busqueda) ||
       (neg.hacienda?.detalle || '').toLowerCase().includes(busqueda) ||
-      (neg.hacienda?.tipo || '').toLowerCase().includes(busqueda);
+      (neg.hacienda?.tipo || '').toLowerCase().includes(busqueda) ||
+      (neg.acargo || '').toLowerCase().includes(busqueda);
 
     const matchEstado = filtroEstado === 'todos' || neg.estado === filtroEstado;
     const matchTipo = filtroTipo === 'todos' || (neg.hacienda?.tipo || 'Invernada') === filtroTipo;
 
-    return matchTexto && matchEstado && matchTipo;
+    let matchEmpresa = true;
+    if (filtroEmpresa === 'mi-empresa' && empresaActiva) {
+      const acargoNeg = (neg.acargo || '').toUpperCase().trim();
+      matchEmpresa = acargoNeg === empresaActiva || acargoNeg.includes(empresaActiva) || empresaActiva.includes(acargoNeg);
+    }
+
+    return matchTexto && matchEstado && matchTipo && matchEmpresa;
   });
 
+  const tablaVacia = document.getElementById('tabla-vacia');
   if (filtrados.length === 0) {
-    document.getElementById('tabla-vacia').classList.remove('hidden');
+    if (tablaVacia) {
+      tablaVacia.classList.remove('hidden');
+      if (filtroEmpresa === 'mi-empresa' && estadoApp.sesion?.empresaNombre) {
+        tablaVacia.innerHTML = `
+          <div class="py-8 px-4 text-center">
+            <div class="w-12 h-12 mx-auto mb-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center text-xl">🏢</div>
+            <h4 class="text-sm font-bold text-slate-800">No hay operaciones registradas para ${estadoApp.sesion.empresaNombre}</h4>
+            <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">Esta empresa aún no tiene negocios cargados en el sistema o los filtros activos no coinciden.</p>
+            <div class="mt-4 flex items-center justify-center gap-2">
+              <button onclick="abrirModalNuevoNegocio()" class="btn-primary-action" style="display:inline-flex;">+ Cargar Operación</button>
+              <button onclick="document.getElementById('filtro-empresa').value='todos'; renderizarTablaNegocios();" class="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 font-bold text-xs transition">Ver Consolidado General</button>
+            </div>
+          </div>
+        `;
+      } else {
+        tablaVacia.innerHTML = `
+          <svg style="width:40px; height:40px; margin:0 auto 12px; opacity:.4;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <p style="font-size:13px; font-weight:600;">No se encontraron negocios con esos filtros</p>
+        `;
+      }
+    }
     return;
   } else {
-    document.getElementById('tabla-vacia').classList.add('hidden');
+    if (tablaVacia) tablaVacia.classList.add('hidden');
   }
 
   filtrados.forEach(neg => {
@@ -306,6 +1046,10 @@ function renderizarTablaNegocios() {
       tipoIcon = "🐂";
     }
 
+    const consignatariaPill = (filtroEmpresa === 'todos' && neg.acargo)
+      ? `<div class="text-[10px] text-slate-500 font-mono mt-0.5"><span class="font-bold text-slate-700">🏢 ${neg.acargo}</span></div>`
+      : '';
+
     tr.innerHTML = `
       <td class="py-3 px-4 font-black text-red-600 font-mono">#${neg.id}</td>
       <td class="py-3 px-4 text-slate-600">${formatearFechaCorta(neg.fecha)}</td>
@@ -314,7 +1058,10 @@ function renderizarTablaNegocios() {
           <span>${tipoIcon}</span> ${tipo}
         </span>
       </td>
-      <td class="py-3 px-4 font-bold text-slate-900">${neg.vendedor}</td>
+      <td class="py-3 px-4">
+        <div class="font-bold text-slate-900">${neg.vendedor}</div>
+        ${consignatariaPill}
+      </td>
       <td class="py-3 px-4 font-bold text-slate-900">${neg.comprador}</td>
       <td class="py-3 px-4">
         <div class="font-semibold text-slate-800">${neg.hacienda?.detalle || '-'}</div>
@@ -358,6 +1105,20 @@ function renderizarTablaNegocios() {
 // 4. FORMULARIO Y CÁLCULOS EN VIVO
 // ==========================================
 function abrirModalNuevoNegocio() {
+  if (!estadoApp.usuarioAutenticado) {
+    showToast('🔒 Acceso restringido. Iniciá sesión con tu usuario de compañía para cargar operaciones.', '🔒');
+    router('inicio');
+    const portal = document.getElementById('portal-sesion-card');
+    if (portal) {
+      portal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      portal.classList.add('login-auth-error');
+      setTimeout(() => portal.classList.remove('login-auth-error'), 450);
+    }
+    const inpUser = document.getElementById('inp-login-user');
+    if (inpUser) inpUser.focus();
+    return;
+  }
+
   // Obtener el número correlativo siguiente
   const maxId = estadoApp.negocios.reduce((max, n) => Math.max(max, n.id || 0), 3420);
   const nuevoId = maxId + 1;
@@ -367,10 +1128,12 @@ function abrirModalNuevoNegocio() {
   const negocioVacio = {
     id: nuevoId,
     fecha: hoy,
-    operador: "TOMI R.",
+    operador: estadoApp.sesion?.operador || "OPERADOR",
     vendedor: "",
     comprador: "",
-    acargo: "ARIEL SAENZ Y CIA.",
+    acargo: estadoApp.sesion?.empresaNombre || "CAMPOGEST CONSIGNATARIA",
+    empresaId: estadoApp.sesion?.empresaId || "cdo",
+    empresaNombre: estadoApp.sesion?.empresaNombre || "CAMPOGEST CONSIGNATARIA",
     hacienda: {
       tipo: "Invernada",
       detalle: "",
@@ -384,14 +1147,14 @@ function abrirModalNuevoNegocio() {
       plazo2: 60,
       comisionPct: 1.5,
       comisionImp: 0,
-      comisionDesc: "COM MAS IVA FCO 1,5%"
+      comisionDesc: `COM MAS IVA ${estadoApp.sesion?.monogram || 'CG'} 1,5%`
     },
     compra: {
       plazo1: 35,
       plazo2: 65,
       comisionPct: 2.0,
       comisionImp: 0,
-      comisionDesc: "COM MAS IVA 2% FCO"
+      comisionDesc: `COM MAS IVA 2% ${estadoApp.sesion?.monogram || 'CG'}`
     },
     resumen: {
       difCompVenta: 0,
@@ -406,7 +1169,7 @@ function abrirModalNuevoNegocio() {
       costoOtro2: 0,
       subtotal2: 0,
       margenNeto: 0,
-      instrucciones: "LIQUIDA A. SAENZ\nFCO FACTURA LAS COM A A. SAENZ"
+      instrucciones: "LIQUIDA A. SAENZ\nCAMPOGEST FACTURA LAS COM A A. SAENZ"
     },
     documentos: {
       dte: { numero: "", nombre: "", tipo: "", data: null },
@@ -437,7 +1200,7 @@ function cargarNegocioEnFormulario(neg) {
   document.getElementById('inp-fecha').value = neg.fecha || '';
   document.getElementById('inp-vendedor').value = neg.vendedor || '';
   document.getElementById('inp-comprador').value = neg.comprador || '';
-  document.getElementById('inp-acargo').value = neg.acargo || '';
+  document.getElementById('inp-acargo').value = neg.acargo || estadoApp.sesion?.empresaNombre || '';
 
   // Hacienda
   const tipoHac = neg.hacienda?.tipo || 'Invernada';
@@ -454,14 +1217,14 @@ function cargarNegocioEnFormulario(neg) {
   document.getElementById('inp-vta-dias2').value = neg.venta?.plazo2 || 60;
   document.getElementById('inp-vta-com-pct').value = neg.venta?.comisionPct || 1.5;
   document.getElementById('inp-vta-com-imp').value = neg.venta?.comisionImp || 0;
-  document.getElementById('inp-vta-com-desc').value = neg.venta?.comisionDesc || 'COM MAS IVA FCO 1,5%';
+  document.getElementById('inp-vta-com-desc').value = neg.venta?.comisionDesc || 'COM MAS IVA 1,5%';
 
   // Compra
   document.getElementById('inp-cmp-dias1').value = neg.compra?.plazo1 || 35;
   document.getElementById('inp-cmp-dias2').value = neg.compra?.plazo2 || 65;
   document.getElementById('inp-cmp-com-pct').value = neg.compra?.comisionPct || 2.0;
   document.getElementById('inp-cmp-com-imp').value = neg.compra?.comisionImp || 0;
-  document.getElementById('inp-cmp-com-desc').value = neg.compra?.comisionDesc || 'COM MAS IVA 2% FCO';
+  document.getElementById('inp-cmp-com-desc').value = neg.compra?.comisionDesc || 'COM MAS IVA 2%';
 
   // Resumen
   document.getElementById('inp-ing-dif').value = neg.resumen?.difCompVenta || 0;
@@ -605,10 +1368,10 @@ function guardarNegocioActual() {
   const negocioGuardado = {
     id: id,
     fecha: document.getElementById('inp-fecha').value,
-    operador: "TOMI R.",
+    operador: estadoApp.sesion?.operador || "TOMI R.",
     vendedor: document.getElementById('inp-vendedor').value.toUpperCase().trim(),
     comprador: document.getElementById('inp-comprador').value.toUpperCase().trim(),
-    acargo: document.getElementById('inp-acargo').value.toUpperCase().trim(),
+    acargo: document.getElementById('inp-acargo').value.toUpperCase().trim() || estadoApp.sesion?.empresaNombre || "CAMPOGEST CONSIGNACIONES SRL",
     hacienda: {
       tipo: document.getElementById('inp-hac-tipo').value || 'Invernada',
       detalle: document.getElementById('inp-hac-detalle').value.toUpperCase().trim(),
@@ -916,7 +1679,7 @@ function copiarTextoWhatsApp(neg) {
   const cmpVto1 = calcularFechaVto(neg.fecha, neg.compra?.plazo1 || 35);
   const cmpVto2 = calcularFechaVto(neg.fecha, neg.compra?.plazo2 || 65);
 
-  const texto = `🐮 *FCO Agroganadera SRL* - Negocio #${neg.id}
+  const texto = `🐮 *${(estadoApp.sesion?.empresaNombre || neg.acargo || 'CAMPOGEST CONSIGNATARIA').toUpperCase()}* - Negocio #${neg.id}
 📅 *Fecha Operación:* ${formatearFechaCorta(neg.fecha)}
 🏷️ *Tipo / Destino:* ${neg.hacienda?.tipo || 'Invernada'}
 👤 *Vendedor:* ${neg.vendedor}
@@ -983,7 +1746,7 @@ function exportarExcelCSV() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `FCO_Agroganadera_Negocios_${new Date().toISOString().slice(0,10)}.csv`;
+  a.download = `CAMPOGEST_Negocios_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
   showToast('Archivo CSV para Excel descargado', '📥');
@@ -992,23 +1755,87 @@ function exportarExcelCSV() {
 // ==========================================
 // 7. CLIENTES Y VENCIMIENTOS
 // ==========================================
-function renderizarTablaClientes() {
+function renderizarTablaClientes(filtro = '') {
   const tbody = document.getElementById('tabla-clientes-body');
+  if (!tbody) return;
   tbody.innerHTML = '';
 
-  estadoApp.clientes.forEach(cli => {
+  if (!Array.isArray(estadoApp.clientes) || estadoApp.clientes.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="py-12 text-center text-slate-400">
+          <div class="flex flex-col items-center justify-center gap-2">
+            <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <span class="text-xs font-semibold text-slate-500">No hay contactos registrados todavía</span>
+            <button type="button" onclick="abrirModalNuevoCliente()" class="mt-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs transition cursor-pointer">
+              + Agregar Primer Contacto
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  const query = (filtro || '').trim().toUpperCase();
+  const clientesFiltrados = estadoApp.clientes.filter(cli => {
+    if (!cli) return false;
+    if (!query) return true;
+    const n = (cli.nombre || '').toUpperCase();
+    const c = (cli.cuit || '').toUpperCase();
+    const l = (cli.localidad || '').toUpperCase();
+    const r = (cli.rol || '').toUpperCase();
+    return n.includes(query) || c.includes(query) || l.includes(query) || r.includes(query);
+  });
+
+  if (clientesFiltrados.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="py-8 text-center text-xs text-slate-400">
+          No se encontraron contactos para la búsqueda "<strong>${filtro}</strong>".
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  clientesFiltrados.forEach(cli => {
     const tr = document.createElement('tr');
-    tr.className = "hover:bg-slate-50 border-b border-slate-100 font-medium text-slate-700";
+    tr.className = "hover:bg-slate-50 border-b border-slate-100 font-medium text-slate-700 transition";
+
+    let rolBadgeClass = "bg-slate-100 text-slate-700";
+    const rolLower = (cli.rol || '').toLowerCase();
+    if (rolLower.includes('vendedor') || rolLower.includes('productor')) {
+      rolBadgeClass = "bg-emerald-50 text-emerald-800 border border-emerald-200/60";
+    } else if (rolLower.includes('comprador') || rolLower.includes('feedlot')) {
+      rolBadgeClass = "bg-blue-50 text-blue-800 border border-blue-200/60";
+    } else if (rolLower.includes('frigorífico') || rolLower.includes('frigorifico')) {
+      rolBadgeClass = "bg-purple-50 text-purple-800 border border-purple-200/60";
+    } else if (rolLower.includes('representante') || rolLower.includes('intermediario')) {
+      rolBadgeClass = "bg-amber-50 text-amber-800 border border-amber-200/60";
+    }
+
+    const safeNombre = (cli.nombre || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    const cliIdStr = cli.id ? String(cli.id) : '';
+
     tr.innerHTML = `
-      <td class="py-3 px-4 font-bold text-slate-900">${cli.nombre}</td>
-      <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-xs bg-slate-100 font-semibold text-slate-700">${cli.rol}</span></td>
-      <td class="py-3 px-4 font-mono">${cli.cuit || '-'}</td>
-      <td class="py-3 px-4 text-slate-500">${cli.localidad || '-'}</td>
-      <td class="py-3 px-4 font-mono">${cli.telefono || '-'}</td>
+      <td class="py-3 px-4 font-bold text-slate-900">${cli.nombre || '-'}</td>
+      <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${rolBadgeClass}">${cli.rol || 'Contacto'}</span></td>
+      <td class="py-3 px-4 font-mono text-slate-600 text-xs">${cli.cuit || '-'}</td>
+      <td class="py-3 px-4 text-slate-500 text-xs">${cli.localidad || '-'}</td>
+      <td class="py-3 px-4 font-mono text-slate-600 text-xs">${cli.telefono || '-'}</td>
       <td class="py-3 px-4 text-center">
-        <button onclick="filtrarNegociosPorCliente('${cli.nombre}')" class="text-blue-600 hover:underline font-semibold text-xs">
-          Ver Operaciones
-        </button>
+        <div class="flex items-center justify-center gap-1.5">
+          <button type="button" onclick="filtrarNegociosPorCliente('${safeNombre}')" class="px-2 py-1 rounded text-blue-600 hover:bg-blue-50 font-bold text-xs transition cursor-pointer" title="Ver operaciones de este contacto">
+            Operaciones
+          </button>
+          <button type="button" onclick="abrirModalNuevoCliente('${cliIdStr}')" class="px-2 py-1 rounded text-slate-600 hover:bg-slate-100 font-bold text-xs transition cursor-pointer" title="Editar contacto">
+            Editar
+          </button>
+          <button type="button" onclick="eliminarCliente('${cliIdStr}')" class="px-2 py-1 rounded text-rose-600 hover:bg-rose-50 font-bold text-xs transition cursor-pointer" title="Eliminar contacto">
+            Eliminar
+          </button>
+        </div>
       </td>
     `;
     tbody.appendChild(tr);
@@ -1017,69 +1844,204 @@ function renderizarTablaClientes() {
 
 function filtrarNegociosPorCliente(nombre) {
   router('negocios');
-  document.getElementById('filtro-busqueda').value = nombre;
+  const inpFiltro = document.getElementById('filtro-busqueda');
+  if (inpFiltro) inpFiltro.value = nombre;
   renderizarTablaNegocios();
 }
 
-function abrirModalNuevoCliente() {
-  document.getElementById('modal-cliente').classList.remove('hidden');
-  document.getElementById('inp-modal-cli-nombre').value = '';
-  document.getElementById('inp-modal-cli-cuit').value = '';
-  document.getElementById('inp-modal-cli-renspa').value = '';
-  document.getElementById('inp-modal-cli-loc').value = '';
-  document.getElementById('inp-modal-cli-tel').value = '';
-  document.getElementById('inp-modal-cli-com').value = '1.5';
-  document.getElementById('inp-modal-cli-nombre').focus();
+function abrirModalNuevoCliente(id = null) {
+  const modal = document.getElementById('modal-cliente');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+
+  const inpId = document.getElementById('inp-modal-cli-id');
+  const inpNom = document.getElementById('inp-modal-cli-nombre');
+  const inpRol = document.getElementById('inp-modal-cli-rol');
+  const inpCuit = document.getElementById('inp-modal-cli-cuit');
+  const inpRenspa = document.getElementById('inp-modal-cli-renspa');
+  const inpLoc = document.getElementById('inp-modal-cli-loc');
+  const inpTel = document.getElementById('inp-modal-cli-tel');
+  const inpCom = document.getElementById('inp-modal-cli-com');
+  const titulo = document.getElementById('modal-cli-titulo');
+
+  if (id) {
+    const cli = (estadoApp.clientes || []).find(c => String(c.id) === String(id));
+    if (cli) {
+      if (titulo) titulo.textContent = 'Editar Contacto / Productor';
+      if (inpId) inpId.value = cli.id || '';
+      if (inpNom) inpNom.value = cli.nombre || '';
+      if (inpRol) inpRol.value = cli.rol || 'Vendedor / Productor';
+      if (inpCuit) inpCuit.value = (cli.cuit && cli.cuit !== '-') ? cli.cuit : '';
+      if (inpRenspa) inpRenspa.value = (cli.renspa && cli.renspa !== '-') ? cli.renspa : '';
+      if (inpLoc) inpLoc.value = (cli.localidad && cli.localidad !== '-') ? cli.localidad : '';
+      if (inpTel) inpTel.value = (cli.telefono && cli.telefono !== '-') ? cli.telefono : '';
+      if (inpCom) inpCom.value = cli.comisionHabitual !== undefined ? cli.comisionHabitual : '1.5';
+      setTimeout(() => { if (inpNom) inpNom.focus(); }, 60);
+      return;
+    }
+  }
+
+  // Nuevo Contacto
+  if (titulo) titulo.textContent = 'Nuevo Contacto / Productor';
+  if (inpId) inpId.value = '';
+  if (inpNom) inpNom.value = '';
+  if (inpRol) inpRol.value = 'Vendedor / Productor';
+  if (inpCuit) inpCuit.value = '';
+  if (inpRenspa) inpRenspa.value = '';
+  if (inpLoc) inpLoc.value = '';
+  if (inpTel) inpTel.value = '';
+  if (inpCom) inpCom.value = '1.5';
+  setTimeout(() => { if (inpNom) inpNom.focus(); }, 60);
 }
 
 function cerrarModalNuevoCliente() {
-  document.getElementById('modal-cliente').classList.add('hidden');
+  const modal = document.getElementById('modal-cliente');
+  if (modal) modal.classList.add('hidden');
+  const inpId = document.getElementById('inp-modal-cli-id');
+  if (inpId) inpId.value = '';
 }
 
 function guardarClienteDesdeModal() {
-  const nombre = document.getElementById('inp-modal-cli-nombre').value.trim();
+  const inpNom = document.getElementById('inp-modal-cli-nombre');
+  const nombre = inpNom ? inpNom.value.trim() : '';
   if (!nombre) {
-    showToast('Por favor ingrese el Nombre o Razón Social', '⚠️');
+    showToast('Por favor ingrese el Nombre o Razón Social', 'warning');
+    if (inpNom) {
+      inpNom.focus();
+      inpNom.classList.add('border-rose-500', 'ring-2', 'ring-rose-200');
+      setTimeout(() => inpNom.classList.remove('border-rose-500', 'ring-2', 'ring-rose-200'), 2500);
+    }
     return;
   }
 
-  const rol = document.getElementById('inp-modal-cli-rol').value;
-  const cuit = document.getElementById('inp-modal-cli-cuit').value.trim() || '-';
-  const renspa = document.getElementById('inp-modal-cli-renspa').value.trim() || '-';
-  const localidad = document.getElementById('inp-modal-cli-loc').value.trim() || '-';
-  const telefono = document.getElementById('inp-modal-cli-tel').value.trim() || '-';
-  const comisionHabitual = parseFloat(document.getElementById('inp-modal-cli-com').value) || 1.5;
+  const inpId = document.getElementById('inp-modal-cli-id');
+  const clienteId = inpId ? inpId.value.trim() : '';
 
-  const index = estadoApp.clientes.findIndex(c => c.nombre.toUpperCase() === nombre.toUpperCase());
-  let cliente;
-  if (index >= 0) {
-    cliente = estadoApp.clientes[index];
-    cliente.rol = rol;
-    cliente.cuit = cuit;
-    cliente.renspa = renspa;
-    cliente.localidad = localidad;
-    cliente.telefono = telefono;
-    cliente.comisionHabitual = comisionHabitual;
-  } else {
-    cliente = {
-      id: Date.now() + Math.floor(Math.random() * 100),
-      nombre: nombre.toUpperCase(),
-      rol,
-      cuit,
-      renspa,
-      localidad,
-      telefono,
-      comisionHabitual
-    };
-    estadoApp.clientes.push(cliente);
+  const rol = document.getElementById('inp-modal-cli-rol')?.value || 'Vendedor / Productor';
+  const cuit = document.getElementById('inp-modal-cli-cuit')?.value.trim() || '-';
+  const renspa = document.getElementById('inp-modal-cli-renspa')?.value.trim() || '-';
+  const localidad = document.getElementById('inp-modal-cli-loc')?.value.trim() || '-';
+  const telefono = document.getElementById('inp-modal-cli-tel')?.value.trim() || '-';
+  
+  const rawCom = document.getElementById('inp-modal-cli-com')?.value || '1.5';
+  const comisionHabitual = parseFloat(String(rawCom).replace(',', '.')) || 1.5;
+
+  if (!Array.isArray(estadoApp.clientes)) {
+    estadoApp.clientes = [];
   }
 
-  guardarEnLocalStorage();
-  sincronizarClienteEnNube(cliente);
-  actualizarDatalists();
-  renderizarTablaClientes();
+  let cliente = null;
+  let esNuevo = false;
+
+  // 1. Si viene con ID explícito (modo edición)
+  if (clienteId) {
+    const idx = estadoApp.clientes.findIndex(c => String(c.id) === String(clienteId));
+    if (idx >= 0) {
+      cliente = estadoApp.clientes[idx];
+      cliente.nombre = nombre.toUpperCase();
+      cliente.rol = rol;
+      cliente.cuit = cuit;
+      cliente.renspa = renspa;
+      cliente.localidad = localidad;
+      cliente.telefono = telefono;
+      cliente.comisionHabitual = comisionHabitual;
+    }
+  }
+
+  // 2. Si es alta o no se encontró por ID, buscar si ya existe por nombre exacto
+  if (!cliente) {
+    const idx = estadoApp.clientes.findIndex(c => (c && c.nombre ? String(c.nombre).toUpperCase() : '') === nombre.toUpperCase());
+    if (idx >= 0) {
+      cliente = estadoApp.clientes[idx];
+      cliente.rol = rol;
+      cliente.cuit = cuit;
+      cliente.renspa = renspa;
+      cliente.localidad = localidad;
+      cliente.telefono = telefono;
+      cliente.comisionHabitual = comisionHabitual;
+    } else {
+      esNuevo = true;
+      cliente = {
+        id: Date.now() + Math.floor(Math.random() * 100),
+        nombre: nombre.toUpperCase(),
+        rol,
+        cuit,
+        renspa,
+        localidad,
+        telefono,
+        comisionHabitual
+      };
+      estadoApp.clientes.push(cliente);
+    }
+  }
+
+  try {
+    guardarEnLocalStorage();
+  } catch (e) {
+    console.warn("Error guardando clientes en localStorage:", e);
+  }
+
+  try {
+    sincronizarClienteEnNube(cliente);
+  } catch (e) {
+    console.warn("Error sincronizando cliente en Firestore:", e);
+  }
+
+  try {
+    actualizarDatalists();
+  } catch (e) {
+    console.warn("Error actualizando datalists:", e);
+  }
+
+  try {
+    renderizarTablaClientes();
+  } catch (e) {
+    console.warn("Error renderizando tabla clientes:", e);
+  }
+
   cerrarModalNuevoCliente();
-  showToast(`Cliente ${cliente.nombre} guardado`, '💾');
+  showToast(`Contacto "${cliente.nombre}" ${esNuevo ? 'agregado' : 'actualizado'} con éxito`, 'success');
+}
+
+function eliminarCliente(id) {
+  if (!id || !Array.isArray(estadoApp.clientes)) return;
+  const idx = estadoApp.clientes.findIndex(c => String(c.id) === String(id));
+  if (idx < 0) return;
+
+  const cli = estadoApp.clientes[idx];
+  const confirmacion = confirm(`¿Está seguro de eliminar al contacto "${cli.nombre}" del directorio?`);
+  if (!confirmacion) return;
+
+  estadoApp.clientes.splice(idx, 1);
+
+  try {
+    guardarEnLocalStorage();
+  } catch (e) {
+    console.warn("Error guardando en localStorage:", e);
+  }
+
+  // Eliminar en Firestore si está conectado
+  if (typeof modoNubeActivo !== 'undefined' && modoNubeActivo && db && cli && cli.id) {
+    db.collection('clientes').doc(String(cli.id)).delete().then(() => {
+      console.log(`[Firestore] Cliente ${cli.nombre} eliminado.`);
+    }).catch(err => {
+      console.warn("Error al eliminar cliente en Firestore:", err);
+    });
+  }
+
+  try {
+    actualizarDatalists();
+  } catch (e) {
+    console.warn("Error actualizando datalists:", e);
+  }
+
+  try {
+    renderizarTablaClientes();
+  } catch (e) {
+    console.warn("Error renderizando tabla:", e);
+  }
+
+  showToast(`Contacto "${cli.nombre}" eliminado`, 'info');
 }
 
 function actualizarDatalists() {
@@ -1087,16 +2049,16 @@ function actualizarDatalists() {
   const dlComp = document.getElementById('lista-compradores');
   const dlRepr = document.getElementById('lista-representantes');
 
-  if (!dlVend) return;
-  dlVend.innerHTML = '';
-  dlComp.innerHTML = '';
-  dlRepr.innerHTML = '';
+  if (dlVend) dlVend.innerHTML = '';
+  if (dlComp) dlComp.innerHTML = '';
+  if (dlRepr) dlRepr.innerHTML = '';
 
-  estadoApp.clientes.forEach(c => {
-    const opt = `<option value="${c.nombre}">${c.nombre} (${c.rol})</option>`;
-    dlVend.insertAdjacentHTML('beforeend', opt);
-    dlComp.insertAdjacentHTML('beforeend', opt);
-    dlRepr.insertAdjacentHTML('beforeend', opt);
+  (estadoApp.clientes || []).forEach(c => {
+    if (!c || !c.nombre) return;
+    const opt = `<option value="${c.nombre}">${c.nombre} (${c.rol || 'Contacto'})</option>`;
+    if (dlVend) dlVend.insertAdjacentHTML('beforeend', opt);
+    if (dlComp) dlComp.insertAdjacentHTML('beforeend', opt);
+    if (dlRepr) dlRepr.insertAdjacentHTML('beforeend', opt);
   });
 }
 
@@ -1349,15 +2311,48 @@ function calcularFechaVto(fechaStr, dias) {
   return `${diaNom} ${diaNum} de ${mesNom} de ${anioNum}`;
 }
 
-function showToast(msg, icon = '✅') {
+function showToast(msg, type = 'success') {
   const toast = document.getElementById('toast');
-  document.getElementById('toast-msg').textContent = msg;
-  document.getElementById('toast-icon').textContent = icon;
+  const toastMsg = document.getElementById('toast-msg');
+  const toastIcon = document.getElementById('toast-icon');
+  if (!toast || !toastMsg) return;
+
+  toastMsg.textContent = msg;
+
+  if (toastIcon) {
+    const t = String(type).toLowerCase();
+    if (t === 'warning' || t === '⚠️' || t.includes('warn') || t.includes('aviso')) {
+      toastIcon.outerHTML = '<svg id="toast-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-amber-400" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>';
+    } else if (t === 'error' || t === '❌' || t.includes('err') || t.includes('fail')) {
+      toastIcon.outerHTML = '<svg id="toast-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-rose-400" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+    } else if (t === 'info' || t === 'ℹ️' || t.includes('info')) {
+      toastIcon.outerHTML = '<svg id="toast-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-blue-400" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+    } else {
+      toastIcon.outerHTML = '<svg id="toast-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-emerald-400" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+    }
+  }
+
   toast.classList.remove('translate-y-24', 'opacity-0');
-  setTimeout(() => {
+  if (window._toastTimeout) clearTimeout(window._toastTimeout);
+  window._toastTimeout = setTimeout(() => {
     toast.classList.add('translate-y-24', 'opacity-0');
   }, 3500);
 }
+
+// Atajo de teclado: Escape cierra cualquier modal activo
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    cerrarModalNuevoCliente();
+    const modalSesion = document.getElementById('modal-sesion');
+    if (modalSesion && !modalSesion.classList.contains('hidden')) {
+      cerrarModalSesion();
+    }
+    const modalDoc = document.getElementById('modal-doc-viewer');
+    if (modalDoc && !modalDoc.classList.contains('hidden')) {
+      cerrarVisorDocumento();
+    }
+  }
+});
 
 // ==========================================
 // 10. MÓDULO DE LIQUIDACIÓN Y CONTROL CONTABLE
@@ -1554,6 +2549,15 @@ function cargarLiquidacion(negocioId) {
   // 6. Cargar Cheques Digitales
   renderizarECheqs(neg);
 
+  // 6.b Cargar Apartado L2
+  const l2 = neg.l2 || { pct: 0, concepto: '', deducir: false };
+  const inputL2Pct = document.getElementById('liq-l2-input-pct');
+  const inputL2Concepto = document.getElementById('liq-l2-input-concepto');
+  const checkL2Deducir = document.getElementById('liq-l2-check-deducir');
+  if (inputL2Pct) inputL2Pct.value = l2.pct !== undefined ? l2.pct : 0;
+  if (inputL2Concepto) inputL2Concepto.value = l2.concepto || '';
+  if (checkL2Deducir) checkL2Deducir.checked = !!l2.deducir;
+
   // 7. Ejecutar Recálculo Completo de la Liquidación
   recalcularLiquidacion();
 }
@@ -1567,6 +2571,44 @@ function recalcularLiquidacion() {
   if (!neg) return;
 
   const bruto = neg.hacienda?.subtotal || 0;
+
+  // CÁLCULO APARTADO L2 S/ TOTAL BRUTO
+  const inputL2Pct = document.getElementById('liq-l2-input-pct');
+  const l2Pct = inputL2Pct ? (parseFloat(inputL2Pct.value) || 0) : (neg.l2?.pct || 0);
+  const l2Monto = Math.round(bruto * (l2Pct / 100) * 100) / 100;
+  const l2Remanente = Math.round((bruto - l2Monto) * 100) / 100;
+  const checkL2Deducir = document.getElementById('liq-l2-check-deducir');
+  const l2Deducir = checkL2Deducir ? checkL2Deducir.checked : false;
+
+  const elL2ValMonto = document.getElementById('liq-l2-val-monto');
+  const elL2ValBase = document.getElementById('liq-l2-val-base');
+  const elL2ValRemanente = document.getElementById('liq-l2-val-remanente');
+  const elL2BadgePct = document.getElementById('liq-l2-badge-pct');
+  const elL2FilaCmp = document.getElementById('liq-cmp-fila-l2');
+  const elL2CmpMonto = document.getElementById('liq-cmp-val-l2');
+
+  if (elL2ValMonto) elL2ValMonto.textContent = formatoMoneda(l2Monto);
+  if (elL2ValBase) elL2ValBase.textContent = formatoMoneda(bruto);
+  if (elL2ValRemanente) elL2ValRemanente.textContent = formatoMoneda(l2Remanente);
+  if (elL2BadgePct) elL2BadgePct.textContent = `${l2Pct.toFixed(1)}%`;
+
+  if (elL2FilaCmp && elL2CmpMonto) {
+    if (l2Pct > 0) {
+      elL2FilaCmp.classList.remove('hidden');
+      elL2CmpMonto.textContent = `${l2Deducir ? '(-)' : '(Apartado)'} ${formatoMoneda(l2Monto)}`;
+    } else {
+      elL2FilaCmp.classList.add('hidden');
+    }
+  }
+
+  // Guardar en objeto neg para persistencia
+  if (!neg.l2) neg.l2 = {};
+  neg.l2.pct = l2Pct;
+  neg.l2.monto = l2Monto;
+  neg.l2.remanente = l2Remanente;
+  neg.l2.deducir = l2Deducir;
+  const inputL2Concepto = document.getElementById('liq-l2-input-concepto');
+  if (inputL2Concepto) neg.l2.concepto = inputL2Concepto.value;
 
   // COMPRA
   const comCmpPct = parseFloat(document.getElementById('liq-cmp-input-com-pct').value) || 0;
@@ -1586,8 +2628,10 @@ function recalcularLiquidacion() {
   const totalCmp = Math.round((subtotalCmp + com3rosMonto + fleteCmp) * 100) / 100;
   
   // Neto a Transferir al Productor = Bruto - Comision - Retención RG 830 (o subtotal - retIIGG - iva si es régimen especial)
-  // En la planilla del usuario: Neto Productor = $51.052.589,99
-  const netoProductor = (neg.id === 3428 && comCmpPct === 1.5) ? 51052589.99 : Math.round((bruto - montoComCmp - retIIGG) * 100) / 100;
+  let netoProductor = (neg.id === 3428 && comCmpPct === 1.5) ? 51052589.99 : Math.round((bruto - montoComCmp - retIIGG) * 100) / 100;
+  if (l2Deducir && l2Monto > 0) {
+    netoProductor = Math.max(0, Math.round((netoProductor - l2Monto) * 100) / 100);
+  }
 
   // VENTA
   const comVtaPct = parseFloat(document.getElementById('liq-vta-input-com-pct').value) || 0;
@@ -1968,9 +3012,57 @@ function abrirModalLiquidacionImpresion() {
   document.getElementById('print-liq-utilidadfinal').textContent = utilidad;
   document.getElementById('print-liq-utilidad-cert').textContent = utilidad;
 
+  // Apartado L2 en vista de impresión
+  const filaL2 = document.getElementById('print-liq-fila-l2');
+  if (filaL2) {
+    if (neg.l2 && neg.l2.pct > 0) {
+      filaL2.classList.remove('hidden');
+      document.getElementById('print-liq-l2-desc').textContent = `Apartado L2 (${neg.l2.pct}%)${neg.l2.concepto ? ' - ' + neg.l2.concepto : ''}`;
+      document.getElementById('print-liq-l2-monto').textContent = formatoMoneda(neg.l2.monto);
+      document.getElementById('print-liq-l2-remanente').textContent = `Saldo L1: ${formatoMoneda(neg.l2.remanente)}`;
+    } else {
+      filaL2.classList.add('hidden');
+    }
+  }
+
   // Abrir modal y mostrar solapa Liquidación
   document.getElementById('modal-excel').classList.remove('hidden');
   cambiarModalExcelTab('liquidacion');
+}
+
+function fijarPorcentajeL2(pct) {
+  const input = document.getElementById('liq-l2-input-pct');
+  if (input) {
+    input.value = Number(pct).toFixed(1);
+    recalcularLiquidacion();
+  }
+}
+
+function copiarResumenL2() {
+  const neg = estadoApp.negocios.find(n => n.id === estadoApp.negocioLiquidacionId);
+  if (!neg) return;
+  const bruto = neg.hacienda?.subtotal || 0;
+  const l2Pct = parseFloat(document.getElementById('liq-l2-input-pct')?.value) || 0;
+  const l2Monto = Math.round(bruto * (l2Pct / 100) * 100) / 100;
+  const remanente = Math.round((bruto - l2Monto) * 100) / 100;
+  const concepto = document.getElementById('liq-l2-input-concepto')?.value || 'Apartado L2';
+  const deducir = document.getElementById('liq-l2-check-deducir')?.checked;
+
+  const texto = 
+`📋 *APARTADO L2 — NEGOCIO #${neg.id}*
+🐮 *Bruto Hacienda Base:* ${formatoMoneda(bruto)}
+📊 *Porcentaje L2:* ${l2Pct}%
+💰 *Monto Apartado L2:* ${formatoMoneda(l2Monto)}
+💼 *Saldo Restante L1:* ${formatoMoneda(remanente)}
+📌 *Concepto:* ${concepto}
+⚙️ *Deducción directa de transferencia:* ${deducir ? 'SÍ' : 'NO (Apartado contable)'}
+🗓️ *Fecha:* ${formatearFechaCorta(neg.fecha)}`;
+
+  navigator.clipboard.writeText(texto).then(() => {
+    showToast(`Resumen L2 (${l2Pct}%) copiado al portapapeles`, '📋');
+  }).catch(() => {
+    showToast(`Apartado L2: ${formatoMoneda(l2Monto)}`, '📋');
+  });
 }
 
 function exportarLiquidacionWhatsApp() {
@@ -1983,8 +3075,12 @@ function exportarLiquidacionWhatsApp() {
   const retIIGG = formatoMoneda(parseFloat(document.getElementById('liq-cmp-input-ret-iigg').value) || 0);
   const utilidad = document.getElementById('liq-kpi-utilidad').textContent;
 
+  const l2Info = (neg.l2 && neg.l2.pct > 0)
+    ? `\n• 💰 *Apartado L2 (${neg.l2.pct}%):* ${formatoMoneda(neg.l2.monto)}${neg.l2.concepto ? ' (' + neg.l2.concepto + ')' : ''}`
+    : '';
+
   const texto = 
-`🐂 *FCO AGROGANADERA SRL*
+`🐂 *${(estadoApp.sesion?.empresaNombre || neg.acargo || 'CAMPOGEST CONSIGNATARIA').toUpperCase()}*
 📊 *LIQUIDACIÓN & CONTROL COMPRA/VENTA*
 ────────────────────────
 📋 *Operación:* Negocio #${neg.id} (${formatearFechaCorta(neg.fecha)})
@@ -1997,7 +3093,7 @@ function exportarLiquidacionWhatsApp() {
 
 🌾 *COMPRA (A LIQUIDAR A PRODUCTOR)*
 • Productor: *${neg.vendedor}*
-• Total Liquidación Compra: *${totCmp}*
+• Total Liquidación Compra: *${totCmp}*${l2Info}
 • Retención Ganancias RG 830: *${retIIGG}*
 • 💳 *NETO A TRANSFERIR AL PRODUCTOR:* *${netoProd}*
 
@@ -2005,7 +3101,7 @@ function exportarLiquidacionWhatsApp() {
 • Utilidad Neta Consignataria: *${utilidad}*
 • Cuadre: *AJUSTE A CERO VERIFICADO ✓*
 ────────────────────────
-_Generado por Sistema AgroGestión Pro_`;
+_Generado por Plataforma CAMPOGEST_`;
 
   navigator.clipboard.writeText(texto).then(() => {
     showToast('Liquidación copiada para WhatsApp', '📲');
@@ -2013,6 +3109,65 @@ _Generado por Sistema AgroGestión Pro_`;
     showToast('No se pudo copiar automáticamente', '⚠️');
   });
 }
+
+// Navegación fluida entre secciones institucionales y backoffice
+window.irASeccion = function(id) {
+  if (estadoApp.vistaActual !== 'inicio') {
+    router('inicio');
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }, 120);
+  } else {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }
+};
+
+// Filtro interactivo de catálogo de hacienda
+window.filtrarLotesCatalogo = function(categoria, btn) {
+  document.querySelectorAll('.lote-filtro-btn').forEach(b => {
+    b.classList.remove('bg-emerald-600', 'text-white', 'border-emerald-500');
+    b.classList.add('bg-white', 'text-slate-700', 'border-slate-200');
+  });
+  if (btn) {
+    btn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200');
+    btn.classList.add('bg-emerald-600', 'text-white', 'border-emerald-500');
+  }
+  document.querySelectorAll('.lote-modern-card').forEach(card => {
+    const cat = card.getAttribute('data-categoria');
+    if (categoria === 'todos' || cat === categoria) {
+      card.style.display = 'flex';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+};
+
+// Consultas directas por WhatsApp con datos pre-cargados
+window.consultarLoteWhatsApp = function(titulo, peso, ubicacion) {
+  const texto = encodeURIComponent(`Hola! Me comunico desde la web de CAMPOGEST para consultar por el lote: ${titulo} (${peso} - ${ubicacion}). ¿Sigue disponible para operar?`);
+  window.open(`https://wa.me/5491140532779?text=${texto}`, '_blank');
+};
+
+window.consultarPropiedadWhatsApp = function(nombre, hectareas, ubicacion) {
+  const texto = encodeURIComponent(`Hola! Me comunico desde la web de CAMPOGEST para solicitar información y ficha técnica de la propiedad rural: ${nombre} (${hectareas} - ${ubicacion}).`);
+  window.open(`https://wa.me/5491140532779?text=${texto}`, '_blank');
+};
+
+// Toggle del menú desplegable de Mesa Operativa
+window.toggleMenuSistema = function(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('menu-desplegable-sistema');
+  if (menu) menu.classList.toggle('show');
+};
+
+document.addEventListener('click', function(e) {
+  const menu = document.getElementById('menu-desplegable-sistema');
+  if (menu && !e.target.closest('.dropdown-sistema-wrap')) {
+    menu.classList.remove('show');
+  }
+});
 
 // Iniciar aplicación al cargar el DOM
 window.addEventListener('DOMContentLoaded', inicializarApp);

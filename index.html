@@ -3,199 +3,941 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AgroGestión - Consignataria Ganadera</title>
-  <!-- Tailwind CSS -->
+  <title>CAMPOGEST — Sistema Integral de Consignación Ganadera</title>
+  <meta name="description" content="Plataforma de consignación, liquidación y conciliación de hacienda CAMPOGEST.">
+  <link rel="icon" type="image/png" href="favicon.png">
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col font-sans">
+<body style="background:var(--bg-base); color:var(--obsidian-950); min-height:100vh; display:flex; flex-direction:column; -webkit-font-smoothing:antialiased;">
 
-  <!-- BARRA SUPERIOR DE NAVEGACIÓN -->
-  <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <!-- Logotipo & Nombre -->
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-xl shadow">
-          🐂
+  <!-- CABECERA INSTITUCIONAL CAMPOGEST (Estilo idéntico a la captura) -->
+  <header class="sticky top-0 z-40 campogest-main-header">
+    <div class="header-inner-container">
+
+      <!-- Logo Oficial CAMPOGEST -->
+      <div class="brand-identity-block" onclick="irASeccion('hero-section')" title="CAMPOGEST — Gestión Ganadera & Liquidaciones">
+        <div class="brand-logo-round">
+          <img src="logo-icon.png" id="header-logo-icon" alt="CAMPOGEST">
         </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <span class="font-extrabold text-lg tracking-tight text-white" id="header-empresa">FCO Agroganadera SRL</span>
-            <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-mono font-bold border border-emerald-500/30">v1.0 Pro</span>
-            <span id="badge-conexion-nube" class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-bold border border-emerald-500/30 flex items-center gap-1.5 shadow-sm">
-              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span id="badge-conexion-texto">Nube Conectada</span>
-            </span>
-          </div>
-          <span class="text-xs text-slate-400">Sistema Integral de Consignación y Liquidación Ganadera</span>
+        <div class="brand-titles">
+          <span class="brand-title-main" id="header-empresa">CAMPOGEST</span>
+          <span class="brand-title-sub" id="header-empresa-sub">Gestión Ganadera & Liquidaciones</span>
         </div>
       </div>
 
-      <!-- Menú de Vistas -->
-      <nav class="hidden md:flex items-center gap-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700/60">
-        <button onclick="router('negocios')" id="nav-btn-negocios" class="nav-item active px-3.5 py-1.5 rounded-lg text-xs font-semibold transition">
-          📂 Negocios
-        </button>
-        <button onclick="router('nuevo')" id="nav-btn-nuevo" class="nav-item px-3.5 py-1.5 rounded-lg text-xs font-semibold transition">
-          ➕ Cargar Operación
-        </button>
-        <button onclick="router('liquidacion')" id="nav-btn-liquidacion" class="nav-item px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
-          <span>📊</span>
-          <span>Liquidación y Control</span>
-        </button>
-        <button onclick="router('clientes')" id="nav-btn-clientes" class="nav-item px-3.5 py-1.5 rounded-lg text-xs font-semibold transition">
-          👥 Clientes / Productores
-        </button>
-        <button onclick="router('vencimientos')" id="nav-btn-vencimientos" class="nav-item px-3.5 py-1.5 rounded-lg text-xs font-semibold transition">
-          📅 Vencimientos
-        </button>
+      <!-- Navegación Operativa -->
+      <nav class="nav-links-official">
+        <button type="button" onclick="router('inicio')" id="nav-btn-inicio" class="nav-link-btn active">Inicio</button>
+        <button type="button" onclick="navegarRutaProtegida('negocios')" class="nav-link-btn">Mesa de Negocios</button>
+        <button type="button" onclick="navegarRutaProtegida('liquidacion')" class="nav-link-btn">Liquidación</button>
+        <button type="button" onclick="navegarRutaProtegida('clientes')" class="nav-link-btn">Clientes</button>
+        <button type="button" onclick="navegarRutaProtegida('vencimientos')" class="nav-link-btn">Vencimientos</button>
       </nav>
 
-      <!-- Botón de Acción Rápida -->
-      <div class="flex items-center gap-3">
-        <div class="hidden sm:flex flex-col text-right text-xs">
-          <span class="text-slate-400">Operador</span>
-          <span class="font-bold text-slate-200" id="header-operador">TOMI R.</span>
+      <!-- Menú Desplegable de Sistema / Mesa Operativa -->
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="dropdown-sistema-wrap">
+          <button type="button" onclick="toggleMenuSistema(event)" class="btn-sistema-trigger" title="Acceso a Módulos del Sistema">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            <span>Mesa Operativa</span>
+            <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div class="dropdown-sistema-menu" id="menu-desplegable-sistema">
+            <button type="button" onclick="navegarRutaProtegida('negocios')" class="dropdown-sistema-item">
+              <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              <span>📂 Mesa de Negocios</span>
+            </button>
+            <button type="button" onclick="navegarRutaProtegida('nuevo')" class="dropdown-sistema-item">
+              <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>⚡ Cargar Operación</span>
+            </button>
+            <button type="button" onclick="navegarRutaProtegida('liquidacion')" class="dropdown-sistema-item">
+              <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+              <span>⚖️ Liquidación & Control</span>
+            </button>
+            <button type="button" onclick="navegarRutaProtegida('clientes')" class="dropdown-sistema-item">
+              <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <span>👥 Directorio de Clientes</span>
+            </button>
+            <button type="button" onclick="navegarRutaProtegida('vencimientos')" class="dropdown-sistema-item">
+              <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              <span>📅 Cronograma de Vencimientos</span>
+            </button>
+            <div style="height:1px; background:rgba(130,167,83,0.2); margin:4px 0;"></div>
+            <button type="button" onclick="router('acceso')" class="dropdown-sistema-item" style="color:var(--olive-300);">
+              <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+              <span>🔐 Acceso Compañía</span>
+            </button>
+          </div>
         </div>
-        <button onclick="abrirModalNuevoNegocio()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-sm">
-          <span>⚡</span>
-          <span>Nuevo Negocio</span>
-        </button>
+
+        <!-- Ranura dinámica de sesión (login o pill de usuario activo) -->
+        <div id="header-sesion-slot"></div>
       </div>
     </div>
   </header>
 
   <!-- CONTENIDO PRINCIPAL -->
-  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+  <main id="main-content" style="flex:1; width:100%; margin:0; padding:0; display:flex; flex-direction:column;">
 
     <!-- ======================================================== -->
-    <!-- SECCIÓN 1: LISTADO DE NEGOCIOS & TABLERO RESUMEN         -->
+    <!-- PARTE 1: INICIO DE PÁGINA (PÚBLICA & INSTITUCIONAL)      -->
     <!-- ======================================================== -->
-    <section id="seccion-negocios" class="seccion-vista space-y-6">
-      
-      <!-- Métricas Clave del Mes -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Tarjeta 1: Total Hacienda -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-          <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
-            <span>Volumen Operado</span>
-            <span class="text-blue-600 text-lg">💰</span>
-          </div>
-          <div class="text-2xl font-black text-slate-900" id="kpi-total-operado">$ 273.700.080</div>
-          <p class="text-xs text-slate-500 mt-1 font-medium"><span id="kpi-total-cabezas" class="text-slate-700 font-bold">153</span> cabezas comercializadas</p>
-        </div>
+    <section id="seccion-inicio" class="seccion-vista">
 
-        <!-- Tarjeta 2: Kilos Operados -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-          <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
-            <span>Kilos Totales</span>
-            <span class="text-amber-600 text-lg">⚖️</span>
+      <!-- ======================================================== -->
+      <!-- 1. HERO BANNER CINEMATOGRÁFICO CAMPOGEST                 -->
+      <!-- ======================================================== -->
+      <div id="hero-section" class="hero-cinematic-banner" style="min-height:680px; height:calc(88vh - 68px); max-height:860px;">
+        <div class="hero-cinematic-scrim"></div>
+        <div class="hero-cinematic-container">
+          
+          <div class="hero-cinematic-tag">
+            <span class="hero-cinematic-tag-bullet"></span>
+            <span>PLATAFORMA INTEGRAL GANADERA • MESA OPERATIVA & FINANZAS</span>
           </div>
-          <div class="text-2xl font-black text-slate-900" id="kpi-total-kilos">47.856 kg</div>
-          <p class="text-xs text-slate-500 mt-1 font-medium">Promedio: <strong class="text-slate-700" id="kpi-promedio-kilo">312 kg/cab</strong></p>
-        </div>
 
-        <!-- Tarjeta 3: Comisiones Totales -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-          <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
-            <span>Comisiones Brutas</span>
-            <span class="text-emerald-600 text-lg">📈</span>
-          </div>
-          <div class="text-2xl font-black text-emerald-600" id="kpi-comisiones-brutas">$ 12.713.504</div>
-          <p class="text-xs text-slate-500 mt-1 font-medium">Subtotal 1 (Comisiones C + V)</p>
-        </div>
+          <h1 class="hero-cinematic-title" style="margin-bottom:16px;">
+            CAMPO<span style="color:var(--olive-400);">GEST</span>
+          </h1>
 
-        <!-- Tarjeta 4: Margen Neto de la Consignataria -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm border-l-4 border-l-emerald-600">
-          <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
-            <span>Margen Neto (I.D - C.D)</span>
-            <span class="text-emerald-600 text-lg">🏆</span>
+          <p class="hero-cinematic-sub" style="font-size:clamp(18px, 2.2vw, 26px); font-weight:700; color:#FFFFFF; margin-bottom:14px; line-height:1.3; max-width:800px;">
+            Gestión de negocios ganaderos, liquidaciones y control operativo.
+          </p>
+          
+          <p style="font-size:clamp(14px, 1.35vw, 17px); color:#D1DDD5; max-width:680px; margin-bottom:34px; line-height:1.6; text-shadow:0 2px 10px rgba(0,0,0,0.7);">
+            Plataforma integral para consignatarias, intermediarios y operadores de hacienda: registrá operaciones de compra/venta, liquidá con cálculo automático de retenciones RG 830, controlá el cronograma de eCheqs y conciliá tu negocio en tiempo real.
+          </p>
+
+          <div class="hero-cinematic-actions">
+            <button type="button" onclick="navegarRutaProtegida('negocios')" class="hero-btn-solid" style="display:inline-flex; align-items:center; gap:10px; background:linear-gradient(135deg, var(--olive-600) 0%, var(--olive-700) 100%); border:1px solid rgba(130,167,83,0.5); box-shadow:0 4px 18px rgba(82,108,51,0.45); font-weight:800; letter-spacing:0.04em;">
+              <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              <span>Mesa de Negocios</span>
+            </button>
+
+            <button type="button" onclick="navegarRutaProtegida('liquidacion')" class="hero-btn-outline" style="display:inline-flex; align-items:center; gap:10px; font-weight:700;">
+              <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+              <span>Liquidación & Control</span>
+            </button>
+
+            <button type="button" onclick="navegarRutaProtegida('nuevo')" class="hero-btn-outline" style="display:inline-flex; align-items:center; gap:8px; border-color:rgba(130,167,83,0.5); background:rgba(20,40,29,0.5); font-weight:700; color:var(--olive-300);">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>Cargar Operación</span>
+            </button>
+
+            <button type="button" onclick="irASeccion('seccion-servicios')" class="hero-btn-outline" style="border-color:rgba(255,255,255,0.2); background:transparent; font-size:13px; color:#A3B8AC;">
+              <span>Módulos del Sistema ↓</span>
+            </button>
           </div>
-          <div class="text-2xl font-black text-slate-900" id="kpi-margen-neto">$ 9.579.502</div>
-          <p class="text-xs text-emerald-600 mt-1 font-bold">Ganancia neta FCO Agroganadera</p>
+
+          <!-- Pilares de Valor de Campogest (Glassmorphism integrado) -->
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:14px; margin-top:42px; max-width:1120px;">
+            
+            <div style="background:rgba(12,21,16,0.72); backdrop-filter:blur(12px); border:1px solid rgba(130,167,83,0.28); border-radius:14px; padding:16px 18px; display:flex; align-items:center; gap:14px; box-shadow:0 8px 24px rgba(0,0,0,0.3);">
+              <div style="width:40px; height:40px; border-radius:10px; background:rgba(130,167,83,0.18); border:1px solid rgba(130,167,83,0.35); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <svg width="20" height="20" fill="none" stroke="var(--olive-300)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              </div>
+              <div>
+                <div style="font-size:13px; font-weight:700; color:#FFFFFF; margin-bottom:2px;">Mesa de Negocios</div>
+                <div style="font-size:11px; color:#A3B8AC; line-height:1.35;">Compra/venta, pesajes y pipeline en vivo</div>
+              </div>
+            </div>
+
+            <div style="background:rgba(12,21,16,0.72); backdrop-filter:blur(12px); border:1px solid rgba(130,167,83,0.28); border-radius:14px; padding:16px 18px; display:flex; align-items:center; gap:14px; box-shadow:0 8px 24px rgba(0,0,0,0.3);">
+              <div style="width:40px; height:40px; border-radius:10px; background:rgba(130,167,83,0.18); border:1px solid rgba(130,167,83,0.35); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <svg width="20" height="20" fill="none" stroke="var(--olive-300)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+              </div>
+              <div>
+                <div style="font-size:13px; font-weight:700; color:#FFFFFF; margin-bottom:2px;">Liquidaciones & Cuadre L2</div>
+                <div style="font-size:11px; color:#A3B8AC; line-height:1.35;">Retenciones RG 830 y cuadre a cero</div>
+              </div>
+            </div>
+
+            <div style="background:rgba(12,21,16,0.72); backdrop-filter:blur(12px); border:1px solid rgba(130,167,83,0.28); border-radius:14px; padding:16px 18px; display:flex; align-items:center; gap:14px; box-shadow:0 8px 24px rgba(0,0,0,0.3);">
+              <div style="width:40px; height:40px; border-radius:10px; background:rgba(130,167,83,0.18); border:1px solid rgba(130,167,83,0.35); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <svg width="20" height="20" fill="none" stroke="var(--olive-300)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              </div>
+              <div>
+                <div style="font-size:13px; font-weight:700; color:#FFFFFF; margin-bottom:2px;">Vencimientos & eCheqs</div>
+                <div style="font-size:11px; color:#A3B8AC; line-height:1.35;">Cronograma de pagos y cobranzas</div>
+              </div>
+            </div>
+
+            <div style="background:rgba(12,21,16,0.72); backdrop-filter:blur(12px); border:1px solid rgba(130,167,83,0.28); border-radius:14px; padding:16px 18px; display:flex; align-items:center; gap:14px; box-shadow:0 8px 24px rgba(0,0,0,0.3);">
+              <div style="width:40px; height:40px; border-radius:10px; background:rgba(130,167,83,0.18); border:1px solid rgba(130,167,83,0.35); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <svg width="20" height="20" fill="none" stroke="var(--olive-300)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              </div>
+              <div>
+                <div style="font-size:13px; font-weight:700; color:#FFFFFF; margin-bottom:2px;">Directorio de Clientes</div>
+                <div style="font-size:11px; color:#A3B8AC; line-height:1.35;">Productores, frigoríficos y saldos</div>
+              </div>
+            </div>
+
+          </div>
+
         </div>
       </div>
 
-      <!-- Barra de Filtros y Búsqueda -->
-      <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-        <div class="flex-1 relative">
-          <span class="absolute left-3.5 top-2.5 text-slate-400">🔍</span>
-          <input type="text" id="filtro-busqueda" oninput="renderizarTablaNegocios()" placeholder="Buscar por N° negocio, vendedor, comprador, tropa..." class="w-full pl-10 pr-4 py-2 text-xs md:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+      <!-- ======================================================== -->
+      <!-- 2. TICKER DE PRECIOS MAG CAÑUELAS EN VIVO               -->
+      <!-- ======================================================== -->
+      <div style="background:#0C1510; border-top:1px solid rgba(130,167,83,0.2); border-bottom:1px solid rgba(130,167,83,0.2); padding:14px 24px;">
+        <div style="max-width:1320px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+          
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; color:#A3B8AC; letter-spacing:0.06em; text-transform:uppercase;">
+              <span style="width:8px; height:8px; border-radius:50%; background:#4ADE80; box-shadow:0 0 10px #4ADE80; animation:pulse-glow 2s infinite;"></span>
+              Mercado Agroganadero Cañuelas
+            </span>
+            <span style="font-size:10px; font-family:var(--font-mono); color:var(--olive-400); background:rgba(130,167,83,0.12); padding:2px 8px; border-radius:6px; border:1px solid rgba(130,167,83,0.25);">EN VIVO</span>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:24px; flex-wrap:wrap;">
+            <div style="display:flex; align-items:baseline; gap:8px;">
+              <span style="font-size:11px; color:#8CA888; font-weight:600;">Novillo Especial:</span>
+              <span style="font-family:var(--font-mono); font-size:14px; font-weight:700; color:#FFFFFF;">$2.280 <span style="color:#4ADE80; font-size:11px;">▲</span></span>
+            </div>
+            <div style="display:flex; align-items:baseline; gap:8px;">
+              <span style="font-size:11px; color:#8CA888; font-weight:600;">Vaq. Pesada:</span>
+              <span style="font-family:var(--font-mono); font-size:14px; font-weight:700; color:#FFFFFF;">$2.190 <span style="color:#4ADE80; font-size:11px;">▲</span></span>
+            </div>
+            <div style="display:flex; align-items:baseline; gap:8px;">
+              <span style="font-size:11px; color:#8CA888; font-weight:600;">Vaca Conserva:</span>
+              <span style="font-family:var(--font-mono); font-size:14px; font-weight:700; color:#FFFFFF;">$1.760 <span style="color:#4ADE80; font-size:11px;">▲</span></span>
+            </div>
+            <div style="display:flex; align-items:baseline; gap:8px;">
+              <span style="font-size:11px; color:#8CA888; font-weight:600;">Ternero Invernada:</span>
+              <span style="font-family:var(--font-mono); font-size:14px; font-weight:700; color:#FFFFFF;">$2.680 <span style="color:#4ADE80; font-size:11px;">▲</span></span>
+            </div>
+          </div>
+
+          <button type="button" onclick="navegarRutaProtegida('negocios')" style="font-size:11px; font-weight:700; color:var(--olive-300); background:rgba(130,167,83,0.12); border:1px solid rgba(130,167,83,0.3); border-radius:8px; padding:6px 14px; cursor:pointer; transition:all 0.15s;" onmouseover="this.style.background='rgba(130,167,83,0.25)';" onmouseout="this.style.background='rgba(130,167,83,0.12)';">
+            Operar con Precios MAG →
+          </button>
         </div>
-        <div class="flex items-center gap-2">
-          <select id="filtro-tipo" onchange="renderizarTablaNegocios()" class="text-xs md:text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white focus:outline-none font-medium text-slate-700">
-            <option value="todos">Todos los Tipos</option>
-            <option value="Invernada">🌾 Invernada</option>
-            <option value="Faena">🥩 Faena</option>
-            <option value="Cría / Reproducción">🐂 Cría / Reproducción</option>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- 3. MÓDULOS DEL SISTEMA CAMPOGEST (GESTIÓN & OPERACIONES) -->
+      <!-- ======================================================== -->
+      <div id="seccion-servicios" class="section-institutional">
+        <div class="section-inner-container">
+          <div class="section-heading-block">
+            <div class="section-title-wrap">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wider uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  Módulos de la Plataforma · Campogest
+                </span>
+                <span class="text-xs text-stone-500 font-medium">· Gestión Operativa & Financiera</span>
+              </div>
+              <h2>Gestión de Negocios, Liquidaciones y Control Ganadero</h2>
+              <p>Campogest centraliza todo el circuito comercial agropecuario: desde la fijación de condiciones en campo hasta la liquidación oficial, cobranza y conciliación contable.</p>
+            </div>
+            <button type="button" onclick="navegarRutaProtegida('negocios')" class="section-link-action">
+              <span>Abrir Mesa de Operaciones</span>
+              <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </button>
+          </div>
+
+          <div class="servicios-modern-grid">
+            
+            <!-- Módulo 1 -->
+            <div class="servicio-modern-card" style="cursor:pointer;" onclick="navegarRutaProtegida('negocios')">
+              <div class="servicio-icon-box">📂</div>
+              <h3 class="text-base font-bold text-slate-900 mb-2">Mesa de Negocios Ganaderos</h3>
+              <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                Registro y seguimiento de operaciones de compra y venta de hacienda (invernada, cría, gordo y faena). Gestión de estados: En Negociación, Cerrado, Pesado y Liquidado.
+              </p>
+              <span class="text-xs font-bold text-emerald-700 flex items-center gap-1">Ver mesa operativa →</span>
+            </div>
+
+            <!-- Módulo 2 -->
+            <div class="servicio-modern-card" style="cursor:pointer;" onclick="navegarRutaProtegida('liquidacion')">
+              <div class="servicio-icon-box">⚖️</div>
+              <h3 class="text-base font-bold text-slate-900 mb-2">Liquidaciones & Cuadre L2</h3>
+              <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                Cuadre matemático simultáneo de compras y ventas. Cálculo automático de retención RG 830, comisiones, flete, pesadas y conciliación a saldo cero garantizado.
+              </p>
+              <span class="text-xs font-bold text-emerald-700 flex items-center gap-1">Ir a liquidaciones →</span>
+            </div>
+
+            <!-- Módulo 3 -->
+            <div class="servicio-modern-card" style="cursor:pointer;" onclick="navegarRutaProtegida('vencimientos')">
+              <div class="servicio-icon-box">📅</div>
+              <h3 class="text-base font-bold text-slate-900 mb-2">Vencimientos & eCheqs</h3>
+              <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                Cronograma financiero sincronizado para cobros y pagos. Control de cheques electrónicos (eCheqs), plazos comerciales pactados y alertas de vencimientos críticos.
+              </p>
+              <span class="text-xs font-bold text-emerald-700 flex items-center gap-1">Consultar cronograma →</span>
+            </div>
+
+            <!-- Módulo 4 -->
+            <div class="servicio-modern-card" style="cursor:pointer;" onclick="navegarRutaProtegida('clientes')">
+              <div class="servicio-icon-box">👥</div>
+              <h3 class="text-base font-bold text-slate-900 mb-2">Directorio de Productores & Clientes</h3>
+              <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                Ficha integral por productor, remitente, comprador o frigorífico. CUIT, CBU, historial comercial consolidado, condición impositiva y control de crédito disponible.
+              </p>
+              <span class="text-xs font-bold text-emerald-700 flex items-center gap-1">Ver clientes →</span>
+            </div>
+
+            <!-- Módulo 5 -->
+            <div class="servicio-modern-card" style="cursor:pointer;" onclick="irASeccion('seccion-nosotros')">
+              <div class="servicio-icon-box">📊</div>
+              <h3 class="text-base font-bold text-slate-900 mb-2">Cotizaciones MAG en Vivo</h3>
+              <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                Monitoreo continuo de los precios oficiales del Mercado Agroganadero de Cañuelas (MAG) para fijación transparente de valores y referencia comercial en campo.
+              </p>
+              <span class="text-xs font-bold text-emerald-700 flex items-center gap-1">Ver cotizaciones →</span>
+            </div>
+
+            <!-- Módulo 6 -->
+            <div class="servicio-modern-card" style="cursor:pointer;" onclick="router('acceso')">
+              <div class="servicio-icon-box">🔐</div>
+              <h3 class="text-base font-bold text-slate-900 mb-2">Seguridad & Multioperador</h3>
+              <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                Plataforma con roles de usuario, auditoría de transacciones, copias de seguridad continuas y acceso seguro desde cualquier computadora, tablet o teléfono.
+              </p>
+              <span class="text-xs font-bold text-emerald-700 flex items-center gap-1">Acceso seguro →</span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- 4. SOBRE CAMPOGEST & MERCADO GANADERO (INSTITUCIONAL)    -->
+      <!-- ======================================================== -->
+      <div id="seccion-nosotros" class="section-institutional bg-alt">
+        <div class="section-inner-container">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            
+            <div class="lg:col-span-7 space-y-6">
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wider uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  Visión & Tecnología Agropecuaria
+                </span>
+                <span class="text-xs text-stone-500 font-medium">· Precisión para el Negocio Ganadero</span>
+              </div>
+              
+              <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                Software especializado para la gestión y liquidación ganadera.
+              </h2>
+              
+              <p class="text-sm sm:text-base text-slate-600 leading-relaxed">
+                En <strong class="text-slate-900 font-bold">CAMPOGEST</strong> transformamos la administración ganadera argentina uniendo el dinamismo comercial del consignatario tradicional con la potencia de una plataforma digital robusta. Eliminamos errores de cálculo, planillas desactualizadas y faltas de control financiero.
+              </p>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                <div class="p-4 rounded-xl bg-white border border-stone-200 shadow-sm text-center">
+                  <div class="text-2xl font-black text-emerald-700 font-mono">100%</div>
+                  <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-1">Cuadre L2 a Cero</div>
+                </div>
+                <div class="p-4 rounded-xl bg-white border border-stone-200 shadow-sm text-center">
+                  <div class="text-2xl font-black text-emerald-700 font-mono">+120.000</div>
+                  <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-1">Cabezas Gestionadas</div>
+                </div>
+                <div class="p-4 rounded-xl bg-white border border-stone-200 shadow-sm text-center">
+                  <div class="text-2xl font-black text-emerald-700 font-mono">24/7</div>
+                  <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-1">Disponibilidad en la Nube</div>
+                </div>
+              </div>
+
+              <div class="pt-2 flex items-center gap-4 flex-wrap">
+                <button type="button" onclick="navegarRutaProtegida('negocios')" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs uppercase tracking-wider transition shadow-md">
+                  <span>Acceder a la Mesa Operativa</span>
+                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                </button>
+                <button type="button" onclick="navegarRutaProtegida('nuevo')" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-slate-800 font-bold text-xs uppercase tracking-wider transition border border-stone-300">
+                  <span>Cargar Nueva Operación</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Card MAG Cañuelas y Cotizaciones en Vivo -->
+            <div class="lg:col-span-5">
+              <div class="market-ticker p-6 space-y-4 rounded-2xl shadow-xl border border-emerald-500/30">
+                <div class="flex items-center justify-between text-xs text-slate-300 font-bold tracking-wider uppercase border-b border-emerald-500/20 pb-3">
+                  <span class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    Mercado Agroganadero Cañuelas
+                  </span>
+                  <span class="text-[10px] text-emerald-400 font-mono bg-emerald-950 px-2 py-0.5 rounded border border-emerald-500/30">EN VIVO</span>
+                </div>
+                
+                <p class="text-xs text-slate-300 leading-normal">
+                  Precios promedio orientativos registrados en las últimas ruedas comerciales del MAG para referencia en negocios particulares y directos.
+                </p>
+
+                <div class="grid grid-cols-2 gap-2.5">
+                  <div class="ticker-chip">
+                    <span class="text-slate-400 font-medium">Novillo Esp. 430-460 kg</span>
+                    <span class="font-mono font-bold text-white text-base">$2.280 <span class="text-emerald-400 text-xs">▲</span></span>
+                  </div>
+                  <div class="ticker-chip">
+                    <span class="text-slate-400 font-medium">Vaquillona Pesada</span>
+                    <span class="font-mono font-bold text-white text-base">$2.190 <span class="text-emerald-400 text-xs">▲</span></span>
+                  </div>
+                  <div class="ticker-chip">
+                    <span class="text-slate-400 font-medium">Vaca Buena Conserva</span>
+                    <span class="font-mono font-bold text-white text-base">$1.760 <span class="text-emerald-400 text-xs">▲</span></span>
+                  </div>
+                  <div class="ticker-chip">
+                    <span class="text-slate-400 font-medium">Ternero Invernada</span>
+                    <span class="font-mono font-bold text-white text-base">$2.680 <span class="text-emerald-400 text-xs">▲</span></span>
+                  </div>
+                </div>
+
+                <div class="pt-2 border-t border-emerald-500/20 flex items-center justify-between text-[11px] text-slate-400">
+                  <span>Fuente: Precios Índice MAG Cañuelas</span>
+                  <span class="font-mono text-emerald-400">Actualizado Hoy</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- 5. CONTACTO & SOPORTE CAMPOGEST                          -->
+      <!-- ======================================================== -->
+      <div id="seccion-contacto" class="section-institutional">
+        <div class="section-inner-container">
+          <div class="cta-banner-official">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              
+              <div class="lg:col-span-8 space-y-4">
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    Atención Inmediata
+                  </span>
+                  <span class="text-xs text-slate-300">· Mesa Comercial & Soporte Técnico Campogest</span>
+                </div>
+                
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                  ¿Querés gestionar tus operaciones con Campogest?
+                </h2>
+                
+                <p class="text-sm text-slate-300 max-w-2xl leading-relaxed">
+                  Comunicate directamente con nuestro equipo. Te asesoramos en la puesta en marcha para tu consignataria, integración de cuentas corrientes y configuración de liquidaciones.
+                </p>
+
+                <div class="flex flex-wrap items-center gap-4 pt-2">
+                  <a href="https://wa.me/5491140532779?text=Hola%20Campogest,%20quisiera%20solicitar%20informaci%C3%B3n%20sobre%20la%20plataforma%20operativa%20y%20liquidaciones" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-950 cursor-pointer">
+                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                    <span>Escribir por WhatsApp</span>
+                  </a>
+                  
+                  <a href="tel:02304668814" class="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider transition border border-white/20">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                    <span>Llamar: 0230-4668814</span>
+                  </a>
+                </div>
+              </div>
+
+              <!-- Info de Oficinas y Horarios -->
+              <div class="lg:col-span-4 bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+                <div class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Mesa de Soporte Campogest</div>
+                <div class="space-y-3 text-xs text-slate-300">
+                  <div class="flex items-start gap-2.5">
+                    <span class="text-base">📍</span>
+                    <div>
+                      <strong class="text-white block">Sede Operativa:</strong>
+                      Buenos Aires, República Argentina.
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-2.5">
+                    <span class="text-base">✉️</span>
+                    <div>
+                      <strong class="text-white block">Email Corporativo:</strong>
+                      contacto@campogest.com
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-2.5">
+                    <span class="text-base">⏰</span>
+                    <div>
+                      <strong class="text-white block">Horario de Mesa:</strong>
+                      Lunes a Viernes de 08:00 a 19:00 hs
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- 6. PIE DE PÁGINA INSTITUCIONAL CAMPOGEST                 -->
+      <!-- ======================================================== -->
+      <footer class="footer-official">
+        <div class="section-inner-container">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-stone-800/80">
+            
+            <!-- Columna 1: Identidad & Marca -->
+            <div class="lg:col-span-4 space-y-4">
+              <div class="flex items-center gap-3">
+                <img src="logo-icon.png" alt="CAMPOGEST" style="height:44px; width:44px; border-radius:10px; border:1px solid rgba(130,167,83,0.3); background:#14281D; padding:2px;">
+                <div>
+                  <div style="font-size:18px; font-weight:900; letter-spacing:-0.02em; color:#FFFFFF; line-height:1.1;">
+                    CAMPO<span style="color:var(--olive-400);">GEST</span>
+                  </div>
+                  <div style="font-size:10px; font-weight:700; color:#8CA888; letter-spacing:0.06em; text-transform:uppercase;">
+                    Gestión Ganadera & Liquidaciones
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs text-stone-400 leading-relaxed max-w-sm">
+                Plataforma integral para consignatarias, intermediarios y operadores de hacienda. Mesa de negocios, liquidaciones simultáneas L2 y control financiero.
+              </p>
+              <div class="flex items-center gap-3 text-xs text-stone-400">
+                <span class="px-2.5 py-1 rounded-md bg-stone-900 border border-stone-800 font-mono text-[11px] text-emerald-400">RUCA Habilitado</span>
+                <span class="px-2.5 py-1 rounded-md bg-stone-900 border border-stone-800 font-mono text-[11px] text-emerald-400">SENASA Oficial</span>
+              </div>
+            </div>
+
+            <!-- Columna 2: Navegación del Sitio -->
+            <div class="lg:col-span-2 space-y-3">
+              <h4 class="footer-col-title">Navegación</h4>
+              <ul class="footer-links-list">
+                <li><button type="button" onclick="irASeccion('hero-section')">Inicio</button></li>
+                <li><button type="button" onclick="irASeccion('seccion-servicios')">Módulos</button></li>
+                <li><button type="button" onclick="irASeccion('seccion-nosotros')">Sobre Campogest</button></li>
+                <li><button type="button" onclick="irASeccion('seccion-nosotros')">Cotizaciones MAG</button></li>
+                <li><button type="button" onclick="irASeccion('seccion-contacto')">Contacto</button></li>
+              </ul>
+            </div>
+
+            <!-- Columna 3: Mesa Operativa -->
+            <div class="lg:col-span-3 space-y-3">
+              <h4 class="footer-col-title">Mesa Operativa</h4>
+              <ul class="footer-links-list">
+                <li><button type="button" onclick="navegarRutaProtegida('negocios')">Mesa de Negocios</button></li>
+                <li><button type="button" onclick="navegarRutaProtegida('nuevo')">Cargar Operación</button></li>
+                <li><button type="button" onclick="navegarRutaProtegida('liquidacion')">Liquidación y Control L2</button></li>
+                <li><button type="button" onclick="navegarRutaProtegida('clientes')">Directorio de Productores</button></li>
+                <li><button type="button" onclick="navegarRutaProtegida('vencimientos')">Vencimientos & eCheqs</button></li>
+                <li><button type="button" onclick="router('acceso')">Acceso al Sistema</button></li>
+              </ul>
+            </div>
+
+            <!-- Columna 4: Contacto y Soporte -->
+            <div class="lg:col-span-3 space-y-3">
+              <h4 class="footer-col-title">Contacto & Soporte</h4>
+              <ul class="footer-links-list">
+                <li class="text-xs text-stone-400">
+                  <strong class="text-stone-300 block">Atención Telefónica:</strong>
+                  0230-4668814
+                </li>
+                <li class="text-xs text-stone-400">
+                  <strong class="text-stone-300 block">WhatsApp Mesa:</strong>
+                  +54 9 11 4053-2779
+                </li>
+                <li class="text-xs text-stone-400">
+                  <strong class="text-stone-300 block">Correo Electrónico:</strong>
+                  contacto@campogest.com
+                </li>
+                <li class="text-xs text-stone-400">
+                  <strong class="text-stone-300 block">Sede Central:</strong>
+                  Buenos Aires, Argentina
+                </li>
+              </ul>
+            </div>
+
+          </div>
+
+          <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
+            <div>
+              &copy; 2026 CAMPOGEST - Sistema Integral de Gestión Ganadera. Todos los derechos reservados.
+            </div>
+            <div class="flex items-center gap-4">
+              <span>Términos & Condiciones</span>
+              <span>·</span>
+              <span>Seguridad & Privacidad</span>
+              <span>·</span>
+              <span class="text-emerald-400 font-mono">Versión 4.2 Pro</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- PARTE 2: ACCESO COMPAÑÍA (INICIAR SESIÓN / CREAR CUENTA)  -->
+    <!-- ======================================================== -->
+    <section id="seccion-acceso" class="seccion-vista hidden">
+      <div class="portal-dedicated-wrapper">
+        <div class="company-portal-card p-6 md:p-8 space-y-5" id="portal-sesion-card">
+          
+          <!-- ESTADO 1: SESIÓN INICIADA (VISTA SI YA HAY USUARIO Y EMPRESA AUTENTICADA) -->
+          <div id="inicio-sesion-activa-view" class="space-y-5 hidden">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-full flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                Terminal Conectada · CAMPOGEST
+              </span>
+              <button onclick="mostrarFormularioLoginInicio()" class="text-[11px] text-slate-400 hover:text-white font-semibold transition flex items-center gap-1 cursor-pointer">
+                Cambiar Cuenta ⇄
+              </button>
+            </div>
+
+            <div class="p-4 rounded-xl border flex items-center gap-4" style="background:rgba(12,21,15,0.7); border:1px solid #1E3425;">
+              <img src="logo-icon.png" class="w-12 h-12 rounded-xl object-cover shadow-md" style="border:1px solid rgba(130,167,83,0.35); background:#14281D;" alt="CAMPOGEST">
+              <div class="flex-1 min-w-0">
+                <div class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Compañía Activa</div>
+                <h3 class="text-base font-bold text-white truncate" id="inicio-card-empresa-nombre">EMPRESA CONSIGNATARIA</h3>
+                <div class="text-xs text-slate-400 font-mono" id="inicio-card-empresa-detalles">CUIT -- · RUCA --</div>
+              </div>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between text-xs">
+              <div>
+                <span class="text-slate-400">Usuario / Operador:</span>
+                <span class="text-white font-bold ml-1.5" id="inicio-card-operador">OPERADOR</span>
+              </div>
+              <span class="text-emerald-400 font-medium font-mono text-[11px]" id="inicio-card-rol">Mesa de Operaciones</span>
+            </div>
+
+            <div class="space-y-2.5 pt-1">
+              <button onclick="router('negocios')" class="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition shadow-lg shadow-emerald-950 flex items-center justify-center gap-2 group cursor-pointer border border-emerald-400/40">
+                <span>Acceder a la Mesa de Operaciones</span>
+                <svg class="w-4 h-4 transform group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </button>
+
+              <button onclick="navegarRutaProtegida('nuevo')" class="w-full py-2.5 px-4 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-200 font-bold text-xs transition border border-slate-700 flex items-center justify-center gap-2 cursor-pointer">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                Cargar Nueva Operación
+              </button>
+
+              <div class="pt-2 text-center">
+                <button onclick="cerrarSesionCampogest()" class="text-xs text-rose-400 hover:text-rose-300 font-semibold transition flex items-center justify-center gap-1.5 mx-auto cursor-pointer">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                  <span>Cerrar Sesión / Salir</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ESTADO 2: FORMULARIO DE INICIO DE SESIÓN CON CONTRASEÑA / REGISTRO DE COMPAÑÍA -->
+          <div id="inicio-sesion-login-view" class="space-y-4">
+            
+            <div class="flex items-center justify-between pb-3 border-b border-stone-800/80">
+              <div class="flex items-center gap-3">
+                <img src="logo-icon.png" class="w-10 h-10 rounded-xl object-cover shadow-sm" style="border:1px solid rgba(130,167,83,0.35); background:#14281D;" alt="CAMPOGEST">
+                <div>
+                  <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                    <span>Acceso Corporativo CAMPOGEST</span>
+                  </h3>
+                  <p class="text-[11px] text-stone-400 mt-0.5">Ingresá con tu usuario de compañía y contraseña</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-mono text-emerald-400 font-bold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">SEGURA</span>
+            </div>
+
+            <!-- Tabs: Iniciar Sesión / Registrar Compañía -->
+            <div class="auth-tabs-nav">
+              <button type="button" id="tab-btn-login" class="auth-tab-btn active" onclick="cambiarTabAuth('login')">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                <span>Iniciar Sesión</span>
+              </button>
+              <button type="button" id="tab-btn-registro" class="auth-tab-btn" onclick="cambiarTabAuth('registro')">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                <span>Crear Cuenta / Registrar Compañía</span>
+              </button>
+            </div>
+
+            <!-- Panel 1: Iniciar Sesión con Contraseña -->
+            <div id="panel-auth-login" class="space-y-3.5">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-300 mb-1">Usuario o Correo de Compañía</label>
+                <input type="text" id="inp-login-user" placeholder="ej: operador@campogest.com o martin@oeste.com" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs font-medium focus:border-emerald-500 focus:outline-none placeholder:text-slate-500" autocomplete="username">
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="block text-[11px] font-bold text-slate-300">Contraseña de Acceso</label>
+                </div>
+                <div class="password-input-group">
+                  <input type="password" id="inp-login-pass" placeholder="Ingresá tu contraseña" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs font-mono focus:border-emerald-500 focus:outline-none placeholder:text-slate-500" autocomplete="current-password" onkeydown="if(event.key==='Enter') ejecutarLoginCampogest()">
+                  <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('inp-login-pass', this)" title="Ver / Ocultar contraseña">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Mensaje de Error en Login -->
+              <div id="login-error-msg" class="hidden p-2.5 rounded-xl bg-rose-950/80 border border-rose-800 text-rose-200 text-xs flex items-center gap-2">
+                <svg class="w-4 h-4 text-rose-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                <span id="login-error-text">Usuario o contraseña incorrectos</span>
+              </div>
+
+              <!-- Botón Principal de Login -->
+              <button type="button" onclick="ejecutarLoginCampogest()" class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-2 cursor-pointer mt-1 border border-emerald-400/40">
+                <span>INGRESAR A CAMPOGEST</span>
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </button>
+
+              <!-- Cuentas de demostración de acceso rápido -->
+              <div class="pt-3 border-t border-slate-800/80 space-y-2">
+                <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1">
+                  <span>Cuentas demo preconfiguradas (1 clic para rellenar):</span>
+                </div>
+                <div class="space-y-1.5">
+                  <button type="button" class="demo-account-chip" onclick="cargarCredencialesDemo('operador@campogest.com', 'campo123')">
+                    <span class="font-bold text-emerald-400">CAMPOGEST Consignaciones SRL</span>
+                    <span class="font-mono text-slate-400 text-[10px]">operador@campogest.com · campo123</span>
+                  </button>
+                  <button type="button" class="demo-account-chip" onclick="cargarCredencialesDemo('martin@oeste.com', 'oeste123')">
+                    <span class="font-bold text-blue-400">Consignataria del Oeste SA</span>
+                    <span class="font-mono text-slate-400 text-[10px]">martin@oeste.com · oeste123</span>
+                  </button>
+                  <button type="button" class="demo-account-chip" onclick="cargarCredencialesDemo('pampeana@campo.com', 'pampa123')">
+                    <span class="font-bold text-amber-400">Ganadera Pampeana SA</span>
+                    <span class="font-mono text-slate-400 text-[10px]">pampeana@campo.com · pampa123</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel 2: Registro de Nueva Compañía & Usuario -->
+            <div id="panel-auth-registro" class="space-y-3 hidden">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-300 mb-1">Razón Social Consignataria *</label>
+                <input type="text" id="inp-reg-empresa" placeholder="ej: GANADERA DEL SUR SA" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs font-bold uppercase focus:border-emerald-500 focus:outline-none">
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-300 mb-1">CUIT *</label>
+                  <input type="text" id="inp-reg-cuit" placeholder="30-71234567-8" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs font-mono focus:border-emerald-500 focus:outline-none">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-300 mb-1">Matrícula RUCA *</label>
+                  <input type="text" id="inp-reg-ruca" placeholder="ej: 54120" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs font-mono focus:border-emerald-500 focus:outline-none">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-300 mb-1">Localidad / Provincia</label>
+                <input type="text" id="inp-reg-loc" placeholder="ej: Pergamino (BA)" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:border-emerald-500 focus:outline-none">
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-300 mb-1">Nombre Operador *</label>
+                  <input type="text" id="inp-reg-operador" placeholder="ej: LUCAS M." class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs font-bold uppercase focus:border-emerald-500 focus:outline-none">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-300 mb-1">Rol / Cargo</label>
+                  <select id="inp-reg-rol" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs font-medium focus:border-emerald-500 focus:outline-none">
+                    <option value="Operador de Mesa">Operador de Mesa</option>
+                    <option value="Consignatario Titular">Consignatario Titular</option>
+                    <option value="Administración & Finanzas">Administración & Finanzas</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-300 mb-1">Usuario / Email de Compañía *</label>
+                <input type="text" id="inp-reg-user" placeholder="ej: lucas@delsur.com o lucas.m" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs font-medium focus:border-emerald-500 focus:outline-none">
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-300 mb-1">Contraseña de Acceso (mín. 4 car.) *</label>
+                <div class="password-input-group">
+                  <input type="password" id="inp-reg-pass" placeholder="Crear contraseña" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs font-mono focus:border-emerald-500 focus:outline-none">
+                  <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('inp-reg-pass', this)" title="Ver / Ocultar">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Mensaje de Error en Registro -->
+              <div id="reg-error-msg" class="hidden p-2.5 rounded-xl bg-rose-950/80 border border-rose-800 text-rose-200 text-xs flex items-center gap-2">
+                <svg class="w-4 h-4 text-rose-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                <span id="reg-error-text">Por favor complete los campos requeridos</span>
+              </div>
+
+              <button type="button" onclick="ejecutarRegistroCampogest()" class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-lg shadow-emerald-950 flex items-center justify-center gap-2 cursor-pointer border border-emerald-400/40">
+                <span>CREAR COMPAÑÍA Y ACCEDER</span>
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </button>
+            </div>
+
+            <div class="text-center hidden" id="btn-cancelar-login-inicio-box">
+              <button type="button" onclick="cancelarFormularioLoginInicio()" class="text-xs text-slate-400 hover:text-white transition font-medium cursor-pointer">Volver a sesión activa</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- PARTE 3: MESA DE NEGOCIOS GANADEROS & GESTIÓN OPERATIVA  -->
+    <!-- ======================================================== -->
+    <section id="seccion-negocios" class="seccion-vista hidden space-y-6">
+
+      <!-- Barra de Navegación Rápida de la Mesa de Negocios -->
+      <div class="business-subnav-bar">
+        <button type="button" onclick="router('negocios')" class="business-subnav-btn active">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18"/></svg>
+          <span>Tablero de Negocios</span>
+        </button>
+        <button type="button" onclick="navegarRutaProtegida('nuevo')" class="business-subnav-btn">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          <span>+ Cargar Operación</span>
+        </button>
+        <button type="button" onclick="navegarRutaProtegida('liquidacion')" class="business-subnav-btn">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <span>Liquidación & Apartado L2</span>
+        </button>
+        <button type="button" onclick="navegarRutaProtegida('clientes')" class="business-subnav-btn">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <span>Directorio Productores</span>
+        </button>
+        <button type="button" onclick="navegarRutaProtegida('vencimientos')" class="business-subnav-btn">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          <span>Vencimientos & eCheqs</span>
+        </button>
+      </div>
+
+      <!-- Tarjetas Metricas KPI -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
+
+        <div class="kpi-card">
+          <div class="kpi-card-label">
+            Volumen Operado
+            <span class="badge-pill" style="background:#EFF6FF; color:#1E40AF; border:1px solid #BFDBFE;"><span class="badge-dot" style="background:#3B82F6;"></span>Total</span>
+          </div>
+          <div class="kpi-card-value" id="kpi-total-operado">$ 273.700.080</div>
+          <div class="kpi-card-sub"><span id="kpi-total-cabezas" style="color:#090D16; font-weight:700;">153</span> cabezas comercializadas</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-card-label">
+            Kilos Totales
+            <span class="badge-pill" style="background:#FFF7ED; color:#C2410C; border:1px solid #FFEDD5;"><span class="badge-dot" style="background:#EA580C;"></span>Kg</span>
+          </div>
+          <div class="kpi-card-value" id="kpi-total-kilos">47.856 kg</div>
+          <div class="kpi-card-sub">Promedio: <strong style="color:#090D16;" id="kpi-promedio-kilo">312 kg/cab</strong></div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-card-label">
+            Comisiones Brutas
+            <span class="badge-pill" style="background:#ECFDF5; color:#065F46; border:1px solid #D1FAE5;"><span class="badge-dot" style="background:#059669;"></span><span id="kpi-badge-empresa">CG</span></span>
+          </div>
+          <div class="kpi-card-value" style="color:#064E3B;" id="kpi-comisiones-brutas">$ 12.713.504</div>
+          <div class="kpi-card-sub">Subtotal 1 — Com. Compra + Venta</div>
+        </div>
+
+        <div class="kpi-card kpi-card--accent">
+          <div class="kpi-card-label">
+            Margen Neto (I.D - C.D)
+            <span class="badge-pill" style="background:#ECFDF5; color:#064E3B; border:1px solid #059669;"><span class="badge-dot" style="background:#059669; box-shadow:0 0 4px #059669;"></span>Neto</span>
+          </div>
+          <div class="kpi-card-value" id="kpi-margen-neto">$ 9.579.502</div>
+          <div class="kpi-card-sub" id="kpi-sub-margen">Ganancia neta Consignataria</div>
+        </div>
+      </div>
+
+      <!-- Barra de Filtros -->
+      <div class="filter-bar">
+        <div style="flex:1; position:relative; min-width:220px;">
+          <svg style="position:absolute; left:12px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:#9CA3AF;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-width="2" d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="filtro-busqueda" oninput="renderizarTablaNegocios()" placeholder="Buscar por N. negocio, vendedor, comprador..." class="search-input">
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <select id="filtro-empresa" onchange="renderizarTablaNegocios()" class="select-control font-bold text-emerald-900 border-emerald-300 bg-emerald-50/80">
+            <option value="mi-empresa" id="opt-filtro-mi-empresa">Mis Negocios (Empresa Activa)</option>
+            <option value="todos">Todas las Empresas (Consolidado)</option>
           </select>
-          <select id="filtro-estado" onchange="renderizarTablaNegocios()" class="text-xs md:text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white focus:outline-none font-medium text-slate-700">
+          <select id="filtro-tipo" onchange="renderizarTablaNegocios()" class="select-control">
+            <option value="todos">Todos los Tipos</option>
+            <option value="Invernada">Invernada</option>
+            <option value="Faena">Faena</option>
+            <option value="Cria / Reproduccion">Cria / Reproduccion</option>
+          </select>
+          <select id="filtro-estado" onchange="renderizarTablaNegocios()" class="select-control">
             <option value="todos">Todos los Estados</option>
             <option value="Pendiente Facturar">Pendiente Facturar</option>
             <option value="Facturado">Facturado</option>
             <option value="Cobrado">Cobrado / Liquidado</option>
           </select>
-          <button onclick="exportarExcelCSV()" class="inline-flex items-center gap-1.5 px-3 py-2 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition">
-            <span>📥</span> Exportar CSV
+          <button onclick="exportarExcelCSV()" class="btn-ghost btn-ghost--green" style="border:1px solid #E3E8ED;">
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Exportar CSV
           </button>
         </div>
       </div>
 
       <!-- Tabla Principal de Operaciones -->
       <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs md:text-sm border-collapse">
-            <thead class="bg-slate-50 text-slate-600 uppercase text-[11px] font-bold border-b border-slate-200 tracking-wider">
+      <!-- Tabla Principal de Operaciones -->
+      <div class="data-table-wrapper">
+        <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead>
               <tr>
-                <th class="py-3.5 px-4">Neg #</th>
-                <th class="py-3.5 px-4">Fecha</th>
-                <th class="py-3.5 px-4">Tipo</th>
-                <th class="py-3.5 px-4">Vendedor</th>
-                <th class="py-3.5 px-4">Comprador</th>
-                <th class="py-3.5 px-4">Hacienda / Tropas</th>
-                <th class="py-3.5 px-4 text-right">Total Venta</th>
-                <th class="py-3.5 px-4 text-right">Margen (I.D-C.D)</th>
-                <th class="py-3.5 px-4 text-center">Estado</th>
-                <th class="py-3.5 px-4 text-right">Acciones</th>
+                <th>Neg #</th>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Vendedor</th>
+                <th>Comprador</th>
+                <th>Hacienda / Tropas</th>
+                <th style="text-align:right;">Total Venta</th>
+                <th style="text-align:right;">Margen (I.D-C.D)</th>
+                <th style="text-align:center;">Estado</th>
+                <th style="text-align:right;">Acciones</th>
               </tr>
             </thead>
-            <tbody id="tabla-negocios-body" class="divide-y divide-slate-100">
-              <!-- Renderizado dinámico desde app.js -->
-            </tbody>
+            <tbody id="tabla-negocios-body"></tbody>
           </table>
         </div>
-        <div id="tabla-vacia" class="hidden p-12 text-center text-slate-400">
-          <p class="text-3xl mb-2">📋</p>
-          <p class="text-sm font-semibold">No se encontraron negocios con esos filtros</p>
+        <div id="tabla-vacia" class="hidden" style="padding:48px; text-align:center; color:#8B96B3;">
+          <svg style="width:40px; height:40px; margin:0 auto 12px; opacity:.4;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <p style="font-size:13px; font-weight:600;">No se encontraron negocios con esos filtros</p>
         </div>
       </div>
 
     </section>
 
-    <!-- ======================================================== -->
-    <!-- SECCIÓN 2: CARGA / EDICIÓN DE NEGOCIO (FORMULARIO ÁGIL)   -->
-    <!-- ======================================================== -->
-    <section id="seccion-formulario" class="seccion-vista hidden space-y-6">
-      
-      <!-- Barra de Título del Formulario -->
-      <div class="bg-white border border-slate-200 rounded-2xl p-4 md:p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <div class="flex items-center gap-3">
-            <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">#</span>
-            <h2 class="text-xl font-black text-slate-900" id="form-titulo">Cargar Operación Ganadera</h2>
-            <span id="form-badge-id" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">Negocio #3423</span>
-          </div>
-          <p class="text-xs text-slate-500 mt-1">Complete los datos. Todos los importes, vencimientos y márgenes se calculan automáticamente.</p>
+    <!-- ======================================================= -->
+    <!-- SECCION 2: CARGA / EDICION DE NEGOCIO (FORMULARIO AGIL) -->
+    <!-- ======================================================= -->
+    <section id="seccion-formulario" class="seccion-vista hidden">
+
+      <!-- Barra de Titulo del Formulario -->
+      <div class="section-card" style="padding:18px 22px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+          <div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div class="section-number" style="background:#EEF2F6; color:#6B7A99; font-size:13px; width:28px; height:28px;">#</div>
+              <h2 style="font-size:16px; font-weight:800; color:#090D16;" id="form-titulo">Cargar Operacion Ganadera</h2>
+              <span id="form-badge-id" style="padding:2px 10px; border-radius:20px; font-size:11px; font-weight:700; background:#EFF6FF; color:#1E40AF; border:1px solid #BFDBFE;">Negocio #3423</span>
+            </div>
+            <p style="font-size:11.5px; color:#8B96B3; margin-top:4px;">Complete los datos. Importes, vencimientos y margenes se calculan automaticamente.</p>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="copiarWhatsAppActual()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition shadow-sm">
-            <span>📲</span> WhatsApp
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            WhatsApp
           </button>
           <button onclick="abrirModalVistaPrevia()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition shadow-sm">
-            <span>👁️</span> Vista Excel / Imprimir
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            Vista Excel / Imprimir
           </button>
           <button onclick="guardarNegocioActual()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-sm">
-            <span>💾</span> Guardar Negocio
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+            Guardar Negocio
           </button>
         </div>
       </div>
@@ -249,9 +991,9 @@
             <label class="block text-xs font-semibold text-slate-600 mb-1">Tipo de Operación / Destino</label>
             <div class="relative">
               <select id="inp-hac-tipo" onchange="recalcularTodo()" class="w-full px-3 py-2 border-2 border-emerald-400 bg-emerald-50/40 rounded-xl text-sm font-black text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                <option value="Invernada">🌾 Invernada</option>
-                <option value="Faena">🥩 Faena</option>
-                <option value="Cría / Reproducción">🐂 Cría / Reproducción</option>
+                <option value="Invernada">Invernada</option>
+                <option value="Faena">Faena</option>
+                <option value="Cría / Reproducción">Cría / Reproducción</option>
               </select>
             </div>
           </div>
@@ -280,7 +1022,7 @@
           </div>
           <div class="flex items-center gap-2">
             <span class="text-xs text-slate-500 font-medium">Destino:</span>
-            <span id="badge-tipo-resumen" class="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300">🌾 Invernada</span>
+            <span id="badge-tipo-resumen" class="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300">Invernada</span>
           </div>
           <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-right">
             <div class="text-[11px] font-bold text-amber-800 uppercase tracking-wider">Total Hacienda</div>
@@ -319,7 +1061,7 @@
 
           <!-- Comisión Venta -->
           <div class="border-t border-slate-100 pt-3">
-            <label class="block text-xs font-bold text-slate-700 mb-2">Comisión de Venta (Ingreso FCO)</label>
+            <label class="block text-xs font-bold text-slate-700 mb-2">Comisión de Venta (Ingreso Consignataria)</label>
             <div class="grid grid-cols-3 gap-3">
               <div>
                 <span class="text-[10px] text-slate-500 font-bold block mb-1">Porcentaje %</span>
@@ -333,7 +1075,7 @@
                 <input type="number" step="0.01" id="inp-vta-com-imp" oninput="recalcularTodo()" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-black text-slate-900 font-mono">
               </div>
             </div>
-            <input type="text" id="inp-vta-com-desc" placeholder="COM MAS IVA FCO 1,5%" class="mt-2 w-full text-xs text-slate-500 border border-slate-200 rounded px-2 py-1 bg-slate-50">
+            <input type="text" id="inp-vta-com-desc" placeholder="COM MAS IVA 1,5%" class="mt-2 w-full text-xs text-slate-500 border border-slate-200 rounded px-2 py-1 bg-slate-50">
           </div>
         </div>
 
@@ -363,7 +1105,7 @@
 
           <!-- Comisión Compra -->
           <div class="border-t border-slate-100 pt-3">
-            <label class="block text-xs font-bold text-slate-700 mb-2">Comisión de Compra (Ingreso FCO)</label>
+            <label class="block text-xs font-bold text-slate-700 mb-2">Comisión de Compra (Ingreso Consignataria)</label>
             <div class="grid grid-cols-3 gap-3">
               <div>
                 <span class="text-[10px] text-slate-500 font-bold block mb-1">Porcentaje %</span>
@@ -377,7 +1119,7 @@
                 <input type="number" step="0.01" id="inp-cmp-com-imp" oninput="recalcularTodo()" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-black text-slate-900 font-mono">
               </div>
             </div>
-            <input type="text" id="inp-cmp-com-desc" placeholder="COM MAS IVA 2% FCO" class="mt-2 w-full text-xs text-slate-500 border border-slate-200 rounded px-2 py-1 bg-slate-50">
+            <input type="text" id="inp-cmp-com-desc" placeholder="COM MAS IVA 2%" class="mt-2 w-full text-xs text-slate-500 border border-slate-200 rounded px-2 py-1 bg-slate-50">
           </div>
         </div>
 
@@ -471,7 +1213,7 @@
 
             <div class="border-t border-slate-800 pt-3 mt-4">
               <label class="block text-xs font-bold text-slate-300 mb-1">Instrucciones de Facturación y Liquidación</label>
-              <textarea id="inp-instrucciones" rows="3" class="w-full text-xs bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-mono" placeholder="LIQUIDA A. SAENZ&#10;FCO FACTURA LAS COM A A. SAENZ"></textarea>
+              <textarea id="inp-instrucciones" rows="3" class="w-full text-xs bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-mono" placeholder="LIQUIDA A. SAENZ&#10;CAMPOGEST FACTURA LAS COM A A. SAENZ"></textarea>
             </div>
           </div>
 
@@ -493,7 +1235,7 @@
           <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/60 space-y-3">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <span class="text-lg">📄</span>
+                <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 <span class="text-xs font-bold text-slate-900 uppercase">DTE (Doc. Tránsito Electrónico - SENASA)</span>
               </div>
               <span id="badge-dte-status" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-600">Sin archivo</span>
@@ -508,21 +1250,21 @@
             <div id="dropzone-dte" class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-xl p-4 text-center cursor-pointer transition bg-white" onclick="document.getElementById('file-dte').click()">
               <input type="file" id="file-dte" accept=".pdf,image/*" class="hidden" onchange="manejarArchivoDTE(event)">
               <div id="dte-preview-empty">
-                <div class="text-2xl mb-1">📤</div>
+                <div class="mb-1"><svg class="w-7 h-7 mx-auto text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg></div>
                 <div class="text-xs font-semibold text-slate-700">Hacé clic para adjuntar el DTE</div>
                 <div class="text-[10px] text-slate-400 mt-0.5">Formatos PDF, PNG o JPG (hasta 15 MB)</div>
               </div>
               <div id="dte-preview-loaded" class="hidden flex items-center justify-between text-left p-1">
                 <div class="flex items-center gap-2 overflow-hidden">
-                  <span class="text-2xl" id="dte-file-icon">📄</span>
+                  <svg class="w-6 h-6 text-blue-600 flex-shrink-0" id="dte-file-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                   <div class="truncate">
                     <p class="text-xs font-bold text-slate-800 truncate" id="dte-file-name">archivo_dte.pdf</p>
                     <p class="text-[10px] text-slate-400" id="dte-file-size">1.2 MB</p>
                   </div>
                 </div>
                 <div class="flex items-center gap-1.5 flex-shrink-0">
-                  <button type="button" onclick="event.stopPropagation(); verArchivoModal('dte')" class="px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-bold rounded-lg transition">👁️ Ver</button>
-                  <button type="button" onclick="event.stopPropagation(); eliminarArchivo('dte')" class="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-bold rounded-lg transition">🗑️</button>
+                  <button type="button" onclick="event.stopPropagation(); verArchivoModal('dte')" class="px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-bold rounded-lg transition">Ver</button>
+                  <button type="button" onclick="event.stopPropagation(); eliminarArchivo('dte')" class="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-bold rounded-lg transition">Eliminar</button>
                 </div>
               </div>
             </div>
@@ -532,7 +1274,7 @@
           <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/60 space-y-3">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <span class="text-lg">⚖️</span>
+                <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 6l3 12h12l3-12M12 3v3"/></svg>
                 <span class="text-xs font-bold text-slate-900 uppercase">Romaneo (Pesada de Balanza / Faena)</span>
               </div>
               <span id="badge-romaneo-status" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-600">Sin archivo</span>
@@ -547,21 +1289,21 @@
             <div id="dropzone-romaneo" class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-xl p-4 text-center cursor-pointer transition bg-white" onclick="document.getElementById('file-romaneo').click()">
               <input type="file" id="file-romaneo" accept=".pdf,image/*" class="hidden" onchange="manejarArchivoRomaneo(event)">
               <div id="romaneo-preview-empty">
-                <div class="text-2xl mb-1">📤</div>
+                <div class="mb-1"><svg class="w-7 h-7 mx-auto text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg></div>
                 <div class="text-xs font-semibold text-slate-700">Hacé clic para adjuntar el Romaneo</div>
                 <div class="text-[10px] text-slate-400 mt-0.5">Formatos PDF, PNG o JPG (hasta 15 MB)</div>
               </div>
               <div id="romaneo-preview-loaded" class="hidden flex items-center justify-between text-left p-1">
                 <div class="flex items-center gap-2 overflow-hidden">
-                  <span class="text-2xl" id="romaneo-file-icon">⚖️</span>
+                  <svg class="w-6 h-6 text-emerald-600 flex-shrink-0" id="romaneo-file-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 6l3 12h12l3-12M12 3v3"/></svg>
                   <div class="truncate">
                     <p class="text-xs font-bold text-slate-800 truncate" id="romaneo-file-name">romaneo_balanza.pdf</p>
                     <p class="text-[10px] text-slate-400" id="romaneo-file-size">850 KB</p>
                   </div>
                 </div>
                 <div class="flex items-center gap-1.5 flex-shrink-0">
-                  <button type="button" onclick="event.stopPropagation(); verArchivoModal('romaneo')" class="px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-bold rounded-lg transition">👁️ Ver</button>
-                  <button type="button" onclick="event.stopPropagation(); eliminarArchivo('romaneo')" class="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-bold rounded-lg transition">🗑️</button>
+                  <button type="button" onclick="event.stopPropagation(); verArchivoModal('romaneo')" class="px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-bold rounded-lg transition">Ver</button>
+                  <button type="button" onclick="event.stopPropagation(); eliminarArchivo('romaneo')" class="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-bold rounded-lg transition">Eliminar</button>
                 </div>
               </div>
             </div>
@@ -575,7 +1317,8 @@
           Cancelar y Volver
         </button>
         <button onclick="guardarNegocioActual()" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-sm flex items-center gap-2">
-          <span>💾</span> Guardar Operación
+          <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+          Guardar Operación
         </button>
       </div>
 
@@ -590,9 +1333,16 @@
           <h2 class="text-xl font-black text-slate-900">Directorio de Productores, Clientes y Representantes</h2>
           <p class="text-xs text-slate-500 mt-0.5">Almacene CUIT, teléfonos y condiciones para autocompletar operaciones al instante.</p>
         </div>
-        <button onclick="abrirModalNuevoCliente()" class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm transition">
-          <span>➕</span> Nuevo Contacto
-        </button>
+        <div class="flex items-center gap-3 w-full md:w-auto">
+          <div class="relative flex-1 md:w-64">
+            <input type="text" id="filtro-clientes" oninput="renderizarTablaClientes(this.value)" placeholder="Buscar por nombre, CUIT, rol..." class="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+          <button onclick="abrirModalNuevoCliente()" class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm transition flex-shrink-0 cursor-pointer">
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Nuevo Contacto
+          </button>
+        </div>
       </div>
 
       <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
@@ -628,7 +1378,8 @@
         <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 class="text-sm font-bold text-purple-900 flex items-center gap-2">
-              <span>📥</span> Vencimientos de Venta (A Cobrar)
+              <svg class="w-4 h-4 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              Vencimientos de Venta (A Cobrar)
             </h3>
             <span class="text-xs text-purple-700 bg-purple-50 px-2 py-0.5 rounded font-bold">Cobranzas</span>
           </div>
@@ -641,7 +1392,8 @@
         <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 class="text-sm font-bold text-indigo-900 flex items-center gap-2">
-              <span>📤</span> Vencimientos de Compra (A Pagar)
+              <svg class="w-4 h-4 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+              Vencimientos de Compra (A Pagar)
             </h3>
             <span class="text-xs text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded font-bold">Pagos</span>
           </div>
@@ -662,7 +1414,7 @@
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div>
             <div class="flex items-center gap-2">
-              <span class="text-2xl">📊</span>
+              <svg class="w-6 h-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
               <div>
                 <h2 class="text-lg font-black text-slate-900 tracking-tight">Liquidación y Control de Compra / Venta</h2>
                 <p class="text-xs text-slate-500">Conciliación contable simultánea, cálculo de IVA, retenciones RG 830, cheques digitales y auditoría de ajuste a cero</p>
@@ -680,15 +1432,18 @@
             </div>
 
             <button onclick="sincronizarConNegocio()" title="Vuelve a cargar los datos originales del Negocio" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5">
-              <span>🔄</span> Sincronizar
+              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              Sincronizar
             </button>
 
             <button onclick="exportarLiquidacionWhatsApp()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
-              <span>📲</span> Enviar WhatsApp
+              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              Enviar WhatsApp
             </button>
 
             <button onclick="abrirModalLiquidacionImpresion()" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
-              <span>🖨️</span> Imprimir / PDF
+              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+              Imprimir / PDF
             </button>
           </div>
         </div>
@@ -711,14 +1466,14 @@
             <span class="text-slate-400 block font-semibold">DTE Senasa</span>
             <div class="flex items-center gap-1">
               <span class="font-mono font-bold text-slate-900" id="liq-info-dte">0326493104</span>
-              <button onclick="verDocDesdeLiquidacion('dte')" class="text-blue-600 hover:text-blue-800 font-bold" title="Ver DTE">👁️</button>
+              <button onclick="verDocDesdeLiquidacion('dte')" class="text-blue-600 hover:text-blue-800 font-bold text-xs" title="Ver DTE">Ver</button>
             </div>
           </div>
           <div>
             <span class="text-slate-400 block font-semibold">Romaneo Balanza</span>
             <div class="flex items-center gap-1">
               <span class="font-mono font-bold text-slate-900" id="liq-info-romaneo">ROM-15340</span>
-              <button onclick="verDocDesdeLiquidacion('romaneo')" class="text-emerald-600 hover:text-emerald-800 font-bold" title="Ver Romaneo">👁️</button>
+              <button onclick="verDocDesdeLiquidacion('romaneo')" class="text-emerald-600 hover:text-emerald-800 font-bold text-xs" title="Ver Romaneo">Ver</button>
             </div>
           </div>
           <div>
@@ -736,7 +1491,6 @@
         <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
           <div class="text-[11px] font-bold text-emerald-700 uppercase tracking-wider mb-1 flex items-center justify-between">
             <span>Facturación Venta</span>
-            <span>🥩</span>
           </div>
           <div class="text-xl font-black text-slate-900 font-mono" id="liq-kpi-total-venta">$ 59.038.598,14</div>
           <p class="text-[11px] text-slate-500 mt-1 font-medium">A cobrar a <strong id="liq-kpi-nombre-comprador">QUICKFOOD</strong></p>
@@ -746,7 +1500,6 @@
         <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
           <div class="text-[11px] font-bold text-blue-700 uppercase tracking-wider mb-1 flex items-center justify-between">
             <span>Liquidación Compra</span>
-            <span>🌾</span>
           </div>
           <div class="text-xl font-black text-slate-900 font-mono" id="liq-kpi-total-compra">$ 57.973.993,70</div>
           <p class="text-[11px] text-slate-500 mt-1 font-medium">Costo total liquidación productor</p>
@@ -756,7 +1509,6 @@
         <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
           <div class="text-[11px] font-bold text-purple-700 uppercase tracking-wider mb-1 flex items-center justify-between">
             <span>Retención RG 830 (2%)</span>
-            <span>🏛️</span>
           </div>
           <div class="text-xl font-black text-purple-700 font-mono" id="liq-kpi-ret-iigg">$ 1.053.511,92</div>
           <p class="text-[11px] text-slate-500 mt-1 font-medium">Ganancias depositadas en AFIP</p>
@@ -766,27 +1518,96 @@
         <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
           <div class="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center justify-between">
             <span>Neto a Transferir</span>
-            <span>💳</span>
           </div>
           <div class="text-xl font-black text-indigo-700 font-mono" id="liq-kpi-neto-productor">$ 51.052.589,99</div>
           <p class="text-[11px] text-slate-500 mt-1 font-medium">Pago bancario a <strong id="liq-kpi-nombre-vendedor">EL DESPERTAR SA</strong></p>
         </div>
 
-        <!-- UTILIDAD NETA DE OPERACIÓN (Estilo caja rosada del Excel) -->
-        <div class="bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+        <!-- UTILIDAD NETA DE OPERACIÓN -->
+        <div class="border-2 rounded-2xl p-4 shadow-sm flex flex-col justify-between" style="background:#F6F8F2; border-color:var(--olive-400);">
           <div>
-            <div class="text-[11px] font-black text-rose-900 uppercase tracking-wider mb-1 flex items-center justify-between">
-              <span>UTILIDAD FCO</span>
-              <span class="text-rose-600 font-bold">🏆</span>
+            <div class="text-[11px] font-black uppercase tracking-wider mb-1 flex items-center justify-between" style="color:var(--pine-900);">
+              <span>UTILIDAD CONSIGNATARIA</span>
             </div>
-            <div class="text-2xl font-black text-rose-700 font-mono" id="liq-kpi-utilidad">$ 1.064.604,44</div>
+            <div class="text-2xl font-black font-mono" style="color:var(--pine-900);" id="liq-kpi-utilidad">$ 1.064.604,44</div>
           </div>
           <div class="mt-2 flex items-center justify-between text-[11px]">
-            <span class="text-rose-800 font-medium">Cuadre Operación:</span>
-            <span id="liq-kpi-cuadre-badge" class="px-2 py-0.5 rounded font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
-              ✓ AJUSTE A 0
+            <span class="font-medium" style="color:var(--obsidian-600);">Cuadre Operación:</span>
+            <span id="liq-kpi-cuadre-badge" class="px-2 py-0.5 rounded font-black text-white" style="background:var(--olive-600); box-shadow:0 1px 4px rgba(96,126,60,0.3);">
+              OK - AJUSTE A 0
             </span>
           </div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- MICROSECCIÓN: APARTADO L2 (LIQUIDACIÓN 2 S/ TOTAL BRUTO) -->
+      <!-- ======================================================== -->
+      <div class="l2-card" style="background:#FFFFFF; border:1px solid #DCE4D6; border-left:4px solid var(--olive-600); border-radius:14px; padding:18px 22px; box-shadow:var(--shadow-card);">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          
+          <!-- Encabezado de la Microsección L2 -->
+          <div style="min-width:280px;">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded text-[11px] font-black uppercase tracking-wider" style="background:var(--olive-50); color:var(--olive-800); border:1px solid var(--olive-200);">
+                Apartado L2
+              </span>
+              <h3 class="font-bold text-sm text-slate-900">Porcentaje Apartado del Total Bruto</h3>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">Cálculo de liquidación secundaria (L2) sobre el importe bruto de hacienda.</p>
+            
+            <div class="mt-2.5 flex items-center gap-2 flex-wrap">
+              <span class="text-[11px] font-semibold text-slate-400">Concepto / Destino:</span>
+              <input type="text" id="liq-l2-input-concepto" oninput="recalcularLiquidacionDesdeInputs()" placeholder="Ej: Honorarios L2 / Comisión pactada" class="text-xs border border-slate-300 rounded-lg px-2.5 py-1 bg-slate-50 font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none w-56">
+              <label class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 cursor-pointer">
+                <input type="checkbox" id="liq-l2-check-deducir" onchange="recalcularLiquidacionDesdeInputs()" class="rounded text-emerald-600 focus:ring-emerald-500">
+                <span>Deducir de Neto a Transferir</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Selector de % y Presets Rápidos -->
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200">
+              <label for="liq-l2-input-pct" class="text-xs font-bold text-slate-700 whitespace-nowrap">% L2:</label>
+              <div class="flex items-center bg-white border border-slate-300 rounded-lg px-2 py-0.5 focus-within:ring-2 focus-within:ring-emerald-500">
+                <input type="number" id="liq-l2-input-pct" oninput="recalcularLiquidacionDesdeInputs()" step="0.1" min="0" max="100" value="0.0" class="w-14 text-center font-black font-mono text-sm text-slate-900 outline-none">
+                <span class="text-xs font-bold text-slate-400">%</span>
+              </div>
+              
+              <!-- Chips rápidos -->
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="fijarPorcentajeL2(0)" class="px-2 py-1 rounded text-[11px] font-bold bg-white hover:bg-slate-200 text-slate-600 border border-slate-200 transition">0%</button>
+                <button type="button" onclick="fijarPorcentajeL2(1.0)" class="px-2 py-1 rounded text-[11px] font-bold bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 transition">1%</button>
+                <button type="button" onclick="fijarPorcentajeL2(1.5)" class="px-2 py-1 rounded text-[11px] font-bold bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 transition">1.5%</button>
+                <button type="button" onclick="fijarPorcentajeL2(2.0)" class="px-2 py-1 rounded text-[11px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition">2%</button>
+                <button type="button" onclick="fijarPorcentajeL2(3.0)" class="px-2 py-1 rounded text-[11px] font-bold bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 transition">3%</button>
+              </div>
+            </div>
+
+            <!-- Panel de Resultados en Tiempo Real -->
+            <div class="flex items-center gap-3 bg-emerald-50/70 border border-emerald-200/90 rounded-xl p-2.5">
+              <div class="text-right">
+                <div class="flex items-center justify-end gap-1.5">
+                  <span class="text-[10px] font-black uppercase tracking-wider text-emerald-900">Monto L2 (<span id="liq-l2-badge-pct">0.0%</span>)</span>
+                </div>
+                <div class="font-mono text-base font-black text-emerald-700" id="liq-l2-val-monto">$ 0,00</div>
+                <div class="text-[10px] text-slate-400 font-mono">de Base <span id="liq-l2-val-base">$ 0,00</span></div>
+              </div>
+
+              <div class="h-8 w-px bg-emerald-200"></div>
+
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Saldo Restante L1</span>
+                <span class="font-mono text-xs font-bold text-slate-800" id="liq-l2-val-remanente">$ 0,00</span>
+              </div>
+
+              <button type="button" onclick="copiarResumenL2()" title="Copiar resumen del apartado L2" class="p-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-sm flex items-center justify-center">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -845,6 +1666,15 @@
               <div class="flex justify-between items-center py-1 border-b border-slate-200 font-bold text-slate-800">
                 <span>Bruto Hacienda:</span>
                 <span class="font-mono text-sm" id="liq-cmp-val-bruto">$ 52.899.600,00</span>
+              </div>
+
+              <!-- Apartado L2 (si está configurado) -->
+              <div id="liq-cmp-fila-l2" class="hidden flex justify-between items-center py-1 border-b border-emerald-200 bg-emerald-50/60 px-2 rounded-lg text-xs font-bold text-emerald-900">
+                <span class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                  <span>Apartado L2:</span>
+                </span>
+                <span class="font-mono font-black text-emerald-700" id="liq-cmp-val-l2">$ 0,00</span>
               </div>
 
               <!-- Comisión Compra Consignataria -->
@@ -1065,9 +1895,9 @@
       </div>
 
       <!-- ======================================================== -->
-      <!-- CARD DE AUDITORÍA Y CONCILIACIÓN ("AJUSTE A 0")         -->
+      <!-- CARD DE AUDITORÍA Y CONCILIACIÓN ("AJUSTE A 0") -->
       <!-- ======================================================== -->
-      <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-5 shadow-lg border border-indigo-800 space-y-4">
+      <div class="text-white rounded-2xl p-5 shadow-lg space-y-4" style="background:linear-gradient(135deg, #09130D 0%, #122118 50%, #182E21 100%); border:1px solid #243D2D;">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div class="space-y-1">
             <div class="flex items-center gap-2">
@@ -1286,10 +2116,18 @@
         <div id="modal-hoja-resumen" class="space-y-4">
           <table class="w-full text-xs border border-slate-300 border-collapse">
             <thead>
-              <tr class="bg-rose-50 text-rose-950 border border-slate-300">
-                <th colspan="2" class="p-2.5 text-left font-black text-base" id="print-empresa">FCO Agroganadera SRL</th>
-                <th class="p-2.5 text-right font-bold">Neg #: <span class="text-red-600 text-sm font-black" id="print-neg-id">3423</span></th>
-                <th class="p-2.5 bg-slate-100 text-center font-normal">Archivo cargado por:<br><strong id="print-operador">TOMI R.</strong></th>
+              <tr class="border border-stone-300" style="background:#F4F6F1; color:#0C1510;">
+                <th colspan="2" class="p-3 text-left font-black text-base">
+                  <div class="flex items-center gap-3">
+                    <img src="logo.png" style="height:38px; width:auto; border-radius:6px; border:1px solid #1F3527; background:#1F3527;" alt="CAMPOGEST">
+                    <div>
+                      <div class="text-base font-black text-stone-900 leading-tight" id="print-empresa">CAMPOGEST Consignaciones SRL</div>
+                      <div class="text-[9.5px] font-bold tracking-widest text-stone-600 uppercase">CAMPOGEST · Gestión Integral Ganadera</div>
+                    </div>
+                  </div>
+                </th>
+                <th class="p-2.5 text-right font-bold">Neg #: <span class="text-emerald-700 text-sm font-black font-mono" id="print-neg-id">3423</span></th>
+                <th class="p-2.5 bg-stone-100 text-center font-normal">Archivo cargado por:<br><strong id="print-operador">OPERADOR CAMPOGEST</strong></th>
               </tr>
               <tr class="border border-slate-300">
                 <td class="p-2 font-bold bg-slate-50 w-36">VENDEDOR:</td>
@@ -1322,12 +2160,12 @@
               <tr class="border-b border-slate-200">
                 <td class="p-2 font-bold">Comisión de C</td>
                 <td class="p-2 text-right font-mono font-bold" id="print-com-c">$ 6.268.003,20</td>
-                <td colspan="2" class="p-2 text-slate-700" id="print-desc-com-c">COM MAS IVA 2% FCO</td>
+                <td colspan="2" class="p-2 text-slate-700" id="print-desc-com-c">COM MAS IVA 2%</td>
               </tr>
               <tr class="border-b border-slate-200">
                 <td class="p-2 font-bold">Comisión de V</td>
                 <td class="p-2 text-right font-mono font-bold" id="print-com-v">$ 2.350.501,20</td>
-                <td colspan="2" class="p-2 text-slate-700" id="print-desc-com-v">COM MAS IVA FCO 1,5%</td>
+                <td colspan="2" class="p-2 text-slate-700" id="print-desc-com-v">COM MAS IVA 1,5%</td>
               </tr>
               <tr class="border-b border-slate-200">
                 <td class="p-2">Otro ingreso 1</td>
@@ -1374,7 +2212,7 @@
                 <td class="p-3 text-right font-mono font-black text-base" id="print-margen-neto">$ 5.484.502,80</td>
                 <td colspan="2" class="p-3 text-xs font-normal whitespace-pre-line" id="print-instrucciones">
                   LIQUIDA A. SAENZ
-                  FCO FACTURA LAS COM A A. SAENZ
+                  CAMPOGEST FACTURA LAS COM A A. SAENZ
                 </td>
               </tr>
             </tbody>
@@ -1413,9 +2251,9 @@
                 <td></td>
               </tr>
               <tr class="border-t-2 border-slate-300">
-                <td colspan="2" class="p-2 text-right font-bold">Comisión FCO:</td>
+                <td colspan="2" class="p-2 text-right font-bold">Comisión Consignataria:</td>
                 <td class="p-2 text-center font-bold font-mono" id="print-vta-com-imp">$ 2.350.501,20</td>
-                <td class="p-2 text-slate-600 italic" id="print-vta-com-desc">COM MAS IVA FCO 1,5%</td>
+                <td class="p-2 text-slate-600 italic" id="print-vta-com-desc">COM MAS IVA 1,5%</td>
               </tr>
             </tbody>
           </table>
@@ -1453,9 +2291,9 @@
                 <td></td>
               </tr>
               <tr class="border-t-2 border-slate-300">
-                <td colspan="2" class="p-2 text-right font-bold">Comisión Compra FCO:</td>
+                <td colspan="2" class="p-2 text-right font-bold">Comisión Compra Consignataria:</td>
                 <td class="p-2 text-center font-bold font-mono" id="print-cmp-com-imp">$ 6.268.003,20</td>
-                <td class="p-2 text-slate-600 italic" id="print-cmp-com-desc">COM MAS IVA 2% FCO</td>
+                <td class="p-2 text-slate-600 italic" id="print-cmp-com-desc">COM MAS IVA 2%</td>
               </tr>
               <tr class="border-b border-slate-200">
                 <td colspan="2" class="p-2 text-right font-bold">Comisión Costo:</td>
@@ -1469,14 +2307,17 @@
         <!-- HOJA MODAL LIQUIDACIÓN COMPRA / VENTA -->
         <div id="modal-hoja-liquidacion" class="hidden space-y-4">
           <div class="border border-slate-300 p-4 rounded-xl bg-white text-xs space-y-3">
-            <div class="flex justify-between items-start border-b-2 border-slate-900 pb-2">
-              <div>
-                <h3 class="font-black text-base text-slate-900" id="print-liq-empresa">FCO AGROGANADERA SRL</h3>
-                <p class="text-[11px] text-slate-600">Liquidación y Conciliación Simultánea de Compra y Venta de Hacienda</p>
+            <div class="flex justify-between items-start border-b-2 border-stone-800 pb-2">
+              <div class="flex items-center gap-3">
+                <img src="logo.png" style="height:42px; width:auto; border-radius:6px; border:1px solid #1F3527; background:#1F3527;" alt="CAMPOGEST">
+                <div>
+                  <h3 class="font-black text-base text-slate-900 leading-tight" id="print-liq-empresa">CAMPOGEST CONSIGNACIONES SRL</h3>
+                  <p class="text-[10.5px] font-bold tracking-wide text-stone-600">CAMPOGEST · Liquidación y Conciliación Simultánea de Compra y Venta</p>
+                </div>
               </div>
               <div class="text-right">
-                <span class="text-xs font-bold">Negocio: <strong class="text-red-700 text-sm font-mono" id="print-liq-neg-id">#03428</strong></span>
-                <div class="text-[10px] text-slate-500">Fecha: <span id="print-liq-fecha">24/03/2026</span></div>
+                <span class="text-xs font-bold">Negocio: <strong class="text-emerald-800 text-sm font-mono font-black" id="print-liq-neg-id">#03428</strong></span>
+                <div class="text-[10px] text-slate-500 font-mono">Fecha: <span id="print-liq-fecha">24/03/2026</span></div>
               </div>
             </div>
 
@@ -1514,7 +2355,7 @@
                   <td class="p-2 text-right font-mono text-slate-500">$ 0,00</td>
                 </tr>
                 <tr>
-                  <td class="p-2 font-semibold">Comisiones FCO</td>
+                  <td class="p-2 font-semibold">Comisiones Consignataria</td>
                   <td class="p-2 text-right font-mono text-red-600" id="print-liq-cmp-com">- $ 793.494,00 (1.5%)</td>
                   <td class="p-2 text-right font-mono text-emerald-700" id="print-liq-vta-com">+ $ 528.996,00 (1.0%)</td>
                   <td class="p-2 text-right font-mono font-bold text-emerald-700" id="print-liq-dif-com">$ 1.322.490,00</td>
@@ -1536,6 +2377,12 @@
                   <td class="p-2 text-right font-mono text-red-600" id="print-liq-cmp-terc">$ 396.747,00</td>
                   <td class="p-2 text-right font-mono">-</td>
                   <td class="p-2 text-right font-mono text-red-600">- $ 396.747,00</td>
+                </tr>
+                <tr id="print-liq-fila-l2" class="hidden bg-emerald-50/50">
+                  <td class="p-2 font-bold text-emerald-900" id="print-liq-l2-desc">Apartado L2 (Liquidación 2)</td>
+                  <td class="p-2 text-right font-mono font-bold text-emerald-800" id="print-liq-l2-monto">$ 0,00</td>
+                  <td class="p-2 text-right font-mono text-slate-400">-</td>
+                  <td class="p-2 text-right font-mono font-semibold text-emerald-800" id="print-liq-l2-remanente">Apartado Bruto</td>
                 </tr>
                 <tr class="bg-slate-100 font-bold text-sm">
                   <td class="p-2">TOTALES</td>
@@ -1583,68 +2430,147 @@
   </div>
 
   <!-- MODAL NUEVO CONTACTO / CLIENTE -->
-  <div id="modal-cliente" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 no-print">
+  <div id="modal-cliente" onclick="if(event.target === this) cerrarModalNuevoCliente();" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 no-print">
     <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
       <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <span class="text-xl">👤</span>
-          <h4 class="text-sm font-bold text-white">Nuevo Contacto / Cliente</h4>
+        <div class="flex items-center gap-2.5">
+          <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-emerald-400"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          <h4 class="text-sm font-bold text-white" id="modal-cli-titulo">Nuevo Contacto / Cliente</h4>
         </div>
-        <button onclick="cerrarModalNuevoCliente()" class="p-1.5 rounded-lg text-slate-400 hover:text-white transition">✕</button>
+        <button type="button" onclick="cerrarModalNuevoCliente()" class="p-1.5 rounded-lg text-slate-400 hover:text-white transition" title="Cerrar ventana">✕</button>
       </div>
-      <div class="p-5 space-y-4 text-xs">
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">Nombre o Razón Social *</label>
-          <input type="text" id="inp-modal-cli-nombre" placeholder="Ej: ESTANCIA LAS LILAS SA" class="w-full px-3 py-2 border border-slate-300 rounded-xl uppercase font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+      <form id="form-modal-cliente" onsubmit="event.preventDefault(); guardarClienteDesdeModal();">
+        <input type="hidden" id="inp-modal-cli-id" value="">
+        <div class="p-5 space-y-4 text-xs">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Nombre o Razón Social *</label>
+            <input type="text" id="inp-modal-cli-nombre" placeholder="Ej: ESTANCIA LAS LILAS SA" class="w-full px-3 py-2 border border-slate-300 rounded-xl uppercase font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none" required autocomplete="off">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Rol Principal</label>
+              <select id="inp-modal-cli-rol" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white">
+                <option value="Vendedor / Productor">Vendedor / Productor</option>
+                <option value="Comprador / Feedlot">Comprador / Feedlot</option>
+                <option value="Frigorífico">Frigorífico</option>
+                <option value="Representante / Intermediario">Representante / Intermediario</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">CUIT</label>
+              <input type="text" id="inp-modal-cli-cuit" placeholder="30-xxxxxxxx-x" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">RENSPA</label>
+              <input type="text" id="inp-modal-cli-renspa" placeholder="03.009.0.xxxxx/00" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Localidad / Provincia</label>
+              <input type="text" id="inp-modal-cli-loc" placeholder="Ej: Trenque Lauquen (BA)" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Teléfono / WhatsApp</label>
+              <input type="text" id="inp-modal-cli-tel" placeholder="Ej: 2392-123456" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Comisión Habitual (%)</label>
+              <input type="text" inputmode="decimal" id="inp-modal-cli-com" value="1.5" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-bold text-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            </div>
+          </div>
         </div>
+        <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2">
+          <button type="button" onclick="cerrarModalNuevoCliente()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-100 transition text-xs">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition text-xs shadow-sm flex items-center gap-1.5 cursor-pointer">
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg> Guardar Contacto
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL SESIÓN / CAMBIO DE EMPRESA Y OPERADOR -->
+  <div id="modal-sesion" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+      <div class="p-4 text-white flex items-center justify-between" style="background:#0C1510; border-bottom:1px solid #1E3425;">
+        <div class="flex items-center gap-3">
+          <img src="logo-icon.png" style="width:34px; height:34px; border-radius:8px; border:1px solid rgba(130,167,83,0.35); background:#14281D; object-fit:cover;" alt="CAMPOGEST">
+          <div>
+            <h4 class="text-sm font-bold text-white leading-tight">Perfil de Sesión & Consignataria</h4>
+            <span class="text-[11px] text-stone-400">Terminal Corporativa Multi-Empresa · CAMPOGEST</span>
+          </div>
+        </div>
+        <button onclick="cerrarModalSesion()" class="p-1.5 rounded-lg text-stone-400 hover:text-white transition">✕</button>
+      </div>
+
+      <div class="p-5 space-y-4 text-xs">
+        <!-- Resumen de sesión actual -->
+        <div class="p-3 border rounded-xl flex items-center justify-between" style="background:var(--olive-50); border:1px solid var(--olive-200);">
+          <div>
+            <div class="text-[10px] uppercase font-bold tracking-wider" style="color:var(--olive-800);">Sesión Actual Activa</div>
+            <div class="text-xs font-bold text-slate-900" id="modal-sesion-actual-empresa">CAMPOGEST CONSIGNACIONES SRL</div>
+            <div class="text-[11px] text-slate-600 font-mono" id="modal-sesion-actual-detalles">OPERADOR CAMPOGEST · Mesa de Operaciones</div>
+          </div>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded text-white" style="background:var(--olive-600);">ACTIVA</span>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1.5">Seleccionar Consignataria / Empresa</label>
+          <div class="space-y-1.5" id="modal-sesion-empresas-lista">
+            <!-- Rellenado dinámicamente con las empresas registradas -->
+          </div>
+        </div>
+
+        <!-- Campos para agregar nueva empresa en el modal -->
+        <div id="modal-form-nueva-empresa" class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 hidden">
+          <div class="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">Nueva Empresa Consignataria</div>
+          <input type="text" id="inp-modal-empresa-nombre" placeholder="Razón Social (ej: CONSIGNATARIA RURAL SA)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold uppercase focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" id="inp-modal-empresa-cuit" placeholder="CUIT 30-xxxxxxxx-x" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <input type="text" id="inp-modal-empresa-ruca" placeholder="Matrícula RUCA" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <input type="text" id="inp-modal-empresa-loc" placeholder="Localidad / Provincia" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+        </div>
+
+        <!-- Operador y Rol -->
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-bold text-slate-700 mb-1">Rol Principal</label>
-            <select id="inp-modal-cli-rol" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white">
-              <option value="Vendedor / Productor">Vendedor / Productor</option>
-              <option value="Comprador / Feedlot">Comprador / Feedlot</option>
-              <option value="Frigorífico">Frigorífico</option>
-              <option value="Representante / Intermediario">Representante / Intermediario</option>
+            <label class="block font-bold text-slate-700 mb-1">Operador / Usuario</label>
+            <input type="text" id="inp-modal-operador" placeholder="Ej: TOMI R." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-bold uppercase focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Rol / Cargo</label>
+            <select id="inp-modal-rol" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white">
+              <option value="Operador de Mesa">Operador de Mesa</option>
+              <option value="Consignatario Titular">Consignatario Titular</option>
+              <option value="Administración & Finanzas">Administración & Finanzas</option>
             </select>
           </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">CUIT</label>
-            <input type="text" id="inp-modal-cli-cuit" placeholder="30-xxxxxxxx-x" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">RENSPA</label>
-            <input type="text" id="inp-modal-cli-renspa" placeholder="03.009.0.xxxxx/00" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Localidad / Provincia</label>
-            <input type="text" id="inp-modal-cli-loc" placeholder="Ej: Trenque Lauquen (BA)" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Teléfono / WhatsApp</label>
-            <input type="text" id="inp-modal-cli-tel" placeholder="Ej: 2392-123456" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Comisión Habitual (%)</label>
-            <input type="number" step="0.1" id="inp-modal-cli-com" value="1.5" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-bold text-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-          </div>
         </div>
       </div>
-      <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2">
-        <button onclick="cerrarModalNuevoCliente()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-100 transition text-xs">Cancelar</button>
-        <button onclick="guardarClienteDesdeModal()" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition text-xs shadow-sm flex items-center gap-1.5">
-          <span>💾</span> Guardar Contacto
+
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+        <button onclick="cerrarSesionCampogest()" class="text-xs text-rose-600 hover:text-rose-800 font-bold transition flex items-center gap-1">
+          <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          Cerrar Sesión / Salir
         </button>
+        <div class="flex items-center gap-2">
+          <button onclick="cerrarModalSesion()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-100 transition text-xs">Cancelar</button>
+          <button onclick="guardarSesionDesdeModal()" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition text-xs shadow-sm flex items-center gap-1.5">
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            Activar Empresa & Operador
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- TOAST NOTIFICACIÓN -->
   <div id="toast" class="fixed bottom-6 right-6 z-50 transform transition-all duration-300 translate-y-24 opacity-0 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-slate-700">
-    <span id="toast-icon">✅</span>
+    <svg id="toast-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
     <span id="toast-msg">Mensaje</span>
   </div>
 

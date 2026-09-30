@@ -1,12 +1,12 @@
-// Datos iniciales de demostración para FCO Agroganadera SRL
+// Datos iniciales de demostración para CAMPOGEST Consignaciones SRL
 const DATOS_INICIALES_NEGOCIOS = [
   {
     id: 3428,
     fecha: "2026-03-24",
-    operador: "TOMI R.",
+    operador: "OPERADOR CAMPOGEST",
     vendedor: "EL DESPERTAR SA",
     comprador: "QUICKFOOD",
-    acargo: "FCO AGROGANADERA SRL",
+    acargo: "CAMPOGEST CONSIGNACIONES SRL",
     hacienda: {
       tipo: "Faena",
       detalle: "26 VACAS DE FAENA",
@@ -24,7 +24,7 @@ const DATOS_INICIALES_NEGOCIOS = [
       plazo2: 30,
       comisionPct: 1.0,
       comisionImp: 528996.00,
-      comisionDesc: "COMISIÓN VENTA FCO 1%",
+      comisionDesc: "COMISIÓN VENTA 1%",
       ivaAlicuota: 10.5,
       ivaHacienda: 5554458.00,
       ivaComision: 55544.58,
@@ -35,7 +35,7 @@ const DATOS_INICIALES_NEGOCIOS = [
       plazo2: 32,
       comisionPct: 1.5,
       comisionImp: 793494.00,
-      comisionDesc: "COMISIÓN COMPRA FCO 1,5%",
+      comisionDesc: "COMISIÓN COMPRA 1,5%",
       ivaAlicuota: 10.5,
       ivaHacienda: 5554458.00,
       ivaComisionDescuento: 83316.87,
@@ -65,7 +65,7 @@ const DATOS_INICIALES_NEGOCIOS = [
       margenNeto: 1064604.44,
       utilidad: 1064604.44,
       ajusteCero: 0.00,
-      instrucciones: "CARGAR A FCO - 4 E-CHEQS QUICKFOOD - CUADRE EXACTO"
+      instrucciones: "CARGAR A CAMPOGEST - 4 E-CHEQS QUICKFOOD - CUADRE EXACTO"
     },
     documentos: {
       dte: {
@@ -109,14 +109,14 @@ const DATOS_INICIALES_NEGOCIOS = [
       plazo2: 60,
       comisionPct: 1.5,
       comisionImp: 2350501.20,
-      comisionDesc: "COM MAS IVA FCO 1,5%"
+      comisionDesc: "COM MAS IVA 1,5%"
     },
     compra: {
       plazo1: 35,
       plazo2: 65,
       comisionPct: 4.0,
       comisionImp: 6268003.20,
-      comisionDesc: "COM MAS IVA 2% FCO"
+      comisionDesc: "COM MAS IVA 2%"
     },
     resumen: {
       difCompVenta: 0,
@@ -131,7 +131,7 @@ const DATOS_INICIALES_NEGOCIOS = [
       costoOtro2: 0,
       subtotal2: 3134001.60,
       margenNeto: 5484502.80,
-      instrucciones: "LIQUIDA A. SAENZ\nFCO FACTURA LAS COM A A. SAENZ"
+      instrucciones: "LIQUIDA A. SAENZ\nCAMPOGEST FACTURA LAS COM A A. SAENZ"
     },
     documentos: {
       dte: {
@@ -169,14 +169,14 @@ const DATOS_INICIALES_NEGOCIOS = [
       plazo2: 30,
       comisionPct: 1.5,
       comisionImp: 1755000.00,
-      comisionDesc: "COM MAS IVA FCO 1,5%"
+      comisionDesc: "COM MAS IVA 1,5%"
     },
     compra: {
       plazo1: 20,
       plazo2: 40,
       comisionPct: 2.0,
       comisionImp: 2340000.00,
-      comisionDesc: "COM MAS IVA FCO 2%"
+      comisionDesc: "COM MAS IVA 2%"
     },
     resumen: {
       difCompVenta: 0,
@@ -229,14 +229,14 @@ const DATOS_INICIALES_NEGOCIOS = [
       plazo2: 60,
       comisionPct: 2.0,
       comisionImp: 1755000.00,
-      comisionDesc: "COM MAS IVA FCO 2%"
+      comisionDesc: "COM MAS IVA 2%"
     },
     compra: {
       plazo1: 30,
       plazo2: 60,
       comisionPct: 2.0,
       comisionImp: 1755000.00,
-      comisionDesc: "COM MAS IVA 2% FCO"
+      comisionDesc: "COM MAS IVA 2%"
     },
     resumen: {
       difCompVenta: 0,
